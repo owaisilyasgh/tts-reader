@@ -14,7 +14,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
 
   <style>
-    /* Global resets & font */
+    /* Reset & font */
     * {
       box-sizing: border-box;
       margin: 0;
@@ -22,6 +22,8 @@
     }
     html, body {
       height: 100%;
+      margin: 0;
+      padding: 0;
     }
     body {
       font-family: 'Open Sans', sans-serif;
@@ -29,16 +31,17 @@
       color: #333;
     }
 
-    /* Container & Layout */
+    /* Container layout */
     .container {
+      display: flex;
+      flex-direction: column;
       max-width: 900px;
       margin: 40px auto;
       padding: 20px;
       background: #fff;
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      display: flex;
-      flex-direction: column;
+      min-height: 0; /* helps flex child (#textContainer) to shrink if needed */
     }
 
     h1 {
@@ -55,6 +58,7 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 1rem;
+      flex: 0 0 auto;
     }
     #voiceSelect {
       padding: 0.3rem;
@@ -98,6 +102,7 @@
       flex-wrap: wrap;
       align-items: center;
       gap: 0.5rem;
+      flex: 0 0 auto;
     }
     #advancedSettings label {
       font-weight: 600;
@@ -115,6 +120,7 @@
     /* File upload */
     #uploadSection {
       margin-bottom: 1rem;
+      flex: 0 0 auto;
     }
     #fileInput {
       font-size: 0.95rem;
@@ -124,14 +130,13 @@
     #textContainer {
       border: 1px solid #ccc;
       padding: 10px;
-      height: 300px;
-      overflow-y: auto;
       border-radius: 4px;
       background-color: #fafafa;
       line-height: 1.4;
       margin-bottom: 1rem;
       white-space: pre-wrap;
-      flex: 1 1 auto; /* Let this grow/shrink in the container */
+      flex: 1 1 auto;   /* Let it expand/shrink vertically */
+      overflow-y: auto; /* Scroll if content is large */
     }
 
     .paragraph {
@@ -159,11 +164,12 @@
       font-size: 0.95rem;
       color: #555;
       margin-bottom: 0.5rem;
+      flex: 0 0 auto;
     }
 
     /* Playback Controls */
     #controls {
-      flex: 0 0 auto; /* keep controls from stretching */
+      flex: 0 0 auto;
     }
     #controls button {
       padding: 0.4rem 0.8rem;
@@ -189,17 +195,13 @@
       display: none;
     }
 
-    /* Responsive Media Queries */
+    /* Mobile adjustments */
     @media (max-width: 600px) {
-      html, body {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-      }
       .container {
-        margin: 0; /* remove top/bottom margin */
-        border-radius: 0; /* remove rounding on phones */
-        min-height: 100vh; /* fill screen height */
+        margin: 0;
+        padding: 15px;
+        border-radius: 0;
+        min-height: 100vh;  /* fill screen height */
       }
       #topBar {
         flex-direction: column;
@@ -215,9 +217,9 @@
       #advancedSettings {
         flex-direction: column;
       }
-      /* Expand text container to fill more space */
+      /* Remove explicit height from text container so it can flex fully */
       #textContainer {
-        height: auto;
+        margin-bottom: 1rem;
       }
     }
   </style>
@@ -292,7 +294,7 @@
     advancedSettings.style.display = advancedVisible ? 'flex' : 'none';
   });
 
-  // Status Bar Update
+  // Status Bar
   function showStatus(message) {
     statusBar.textContent = "Status: " + message;
     console.log(message);
@@ -302,7 +304,7 @@
   if (localStorage.getItem('googleTtsApiKey')) {
     apiKeyInput.value = localStorage.getItem('googleTtsApiKey');
   }
-  apiKeyInput.addEventListener('change', function() {
+  apiKeyInput.addEventListener('change', () => {
     localStorage.setItem('googleTtsApiKey', apiKeyInput.value);
     showStatus("API Key updated.");
   });
@@ -313,7 +315,7 @@
   } else {
     minSentenceLengthInput.value = DEFAULT_MIN_SENTENCE_LENGTH;
   }
-  minSentenceLengthInput.addEventListener('change', function() {
+  minSentenceLengthInput.addEventListener('change', () => {
     localStorage.setItem('minSentenceLength', minSentenceLengthInput.value);
     showStatus("Min Sentence Length updated to " + minSentenceLengthInput.value);
   });
@@ -323,9 +325,7 @@
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = function(evt) {
-      processText(evt.target.result);
-    };
+    reader.onload = evt => processText(evt.target.result);
     reader.readAsText(file);
   });
 
@@ -356,24 +356,23 @@
     globalSentences = [];
     textContainer.innerHTML = "";
 
-    // Regex to avoid splitting after abbreviations
+    // Avoid splitting after abbreviations
     const sentenceSplitRegex = /(?<!\b(?:Dr\.|Mr\.|Mrs\.|Ms\.|Prof\.|Sr\.|Jr\.|b\.))(?<=[.?!])\s+(?=[A-Z])/g;
 
     paragraphs.forEach((para, pIndex) => {
-      let sentences = para.split(sentenceSplitRegex);
-      sentences = combineSentences(sentences);
+      let raw = para.split(sentenceSplitRegex);
+      let sentences = combineSentences(raw);
 
       const pDiv = document.createElement('div');
       pDiv.classList.add('paragraph');
 
-      sentences.forEach((sentence) => {
+      sentences.forEach(sentence => {
         const span = document.createElement('span');
         const globalIndex = globalSentences.length;
         span.id = "sentence_" + globalIndex;
         span.classList.add("sentenceSpan");
         span.textContent = sentence;
 
-        // On click, select the sentence
         span.addEventListener('click', () => {
           currentSentenceIndex = globalIndex;
           stopPlayback();
@@ -384,7 +383,6 @@
 
         pDiv.appendChild(span);
         pDiv.appendChild(document.createTextNode(" "));
-
         globalSentences.push({ paragraphIndex: pIndex, sentenceText: sentence });
       });
 
@@ -501,7 +499,7 @@
     }
   }
 
-  // Highlight the sentence span with id "sentence_{index}"
+  // Highlight the sentence span
   function highlightSentence(index) {
     clearHighlight();
     const sentenceSpan = document.getElementById("sentence_" + index);
@@ -511,12 +509,12 @@
     }
   }
 
-  // Remove highlight from all sentence spans
+  // Remove highlight
   function clearHighlight() {
     document.querySelectorAll('.sentenceSpan').forEach(span => span.classList.remove('highlight'));
   }
 
-  // Stop playback immediately
+  // Stop playback
   function stopPlayback() {
     isStopped = true;
     audioPlayer.pause();
