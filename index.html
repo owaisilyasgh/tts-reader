@@ -20,11 +20,15 @@
       margin: 0;
       padding: 0;
     }
+    html, body {
+      height: 100%;
+    }
     body {
       font-family: 'Open Sans', sans-serif;
       background-color: #f2f2f2;
       color: #333;
     }
+
     /* Container & Layout */
     .container {
       max-width: 900px;
@@ -33,7 +37,10 @@
       background: #fff;
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
     }
+
     h1 {
       margin-bottom: 1rem;
       font-size: 1.5rem;
@@ -41,6 +48,7 @@
       font-weight: 600;
       color: #333;
     }
+
     /* Top Bar: Voice Select, Refresh, Advanced Toggle */
     #topBar {
       display: flex;
@@ -69,6 +77,7 @@
     #refreshVoicesBtn:hover {
       background-color: #0056b3;
     }
+
     /* Advanced Settings Toggle */
     #advancedToggle {
       background: none;
@@ -81,9 +90,10 @@
     #advancedToggle:hover {
       color: #000;
     }
+
     /* Advanced Settings Panel */
     #advancedSettings {
-      display: none; /* Hidden by default */
+      display: none;
       margin-bottom: 1rem;
       flex-wrap: wrap;
       align-items: center;
@@ -101,6 +111,7 @@
       font-size: 0.95rem;
       max-width: 300px;
     }
+
     /* File upload */
     #uploadSection {
       margin-bottom: 1rem;
@@ -108,6 +119,7 @@
     #fileInput {
       font-size: 0.95rem;
     }
+
     /* Text container */
     #textContainer {
       border: 1px solid #ccc;
@@ -119,7 +131,9 @@
       line-height: 1.4;
       margin-bottom: 1rem;
       white-space: pre-wrap;
+      flex: 1 1 auto; /* Let this grow/shrink in the container */
     }
+
     .paragraph {
       margin-bottom: 0.8rem;
     }
@@ -134,6 +148,7 @@
       border-radius: 4px;
       transition: background-color 0.2s ease;
     }
+
     /* Status bar */
     #statusBar {
       border: 1px solid #ccc;
@@ -145,7 +160,11 @@
       color: #555;
       margin-bottom: 0.5rem;
     }
+
     /* Playback Controls */
+    #controls {
+      flex: 0 0 auto; /* keep controls from stretching */
+    }
     #controls button {
       padding: 0.4rem 0.8rem;
       background-color: #007bff;
@@ -164,16 +183,23 @@
       background-color: #ccc;
       cursor: not-allowed;
     }
+
     /* Audio player hidden by default */
     #audioPlayer {
       display: none;
     }
+
     /* Responsive Media Queries */
     @media (max-width: 600px) {
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+      }
       .container {
-        margin: 20px auto;
-        padding: 15px;
-        border-radius: 0;
+        margin: 0; /* remove top/bottom margin */
+        border-radius: 0; /* remove rounding on phones */
+        min-height: 100vh; /* fill screen height */
       }
       #topBar {
         flex-direction: column;
@@ -189,8 +215,9 @@
       #advancedSettings {
         flex-direction: column;
       }
+      /* Expand text container to fill more space */
       #textContainer {
-        height: 220px;
+        height: auto;
       }
     }
   </style>
@@ -265,13 +292,13 @@
     advancedSettings.style.display = advancedVisible ? 'flex' : 'none';
   });
 
-  // Status Bar Update Function
+  // Status Bar Update
   function showStatus(message) {
     statusBar.textContent = "Status: " + message;
     console.log(message);
   }
 
-  // Load & Save API key in localStorage
+  // Load & Save API Key
   if (localStorage.getItem('googleTtsApiKey')) {
     apiKeyInput.value = localStorage.getItem('googleTtsApiKey');
   }
@@ -280,7 +307,7 @@
     showStatus("API Key updated.");
   });
 
-  // Load & Save min sentence length in localStorage
+  // Load & Save Min Sentence Length
   if (localStorage.getItem('minSentenceLength')) {
     minSentenceLengthInput.value = localStorage.getItem('minSentenceLength');
   } else {
@@ -291,14 +318,7 @@
     showStatus("Min Sentence Length updated to " + minSentenceLengthInput.value);
   });
 
-  // If user changes voice mid-playback, let them know the new voice applies next sentence
-  voiceSelect.addEventListener('change', function() {
-    if (!stopBtn.disabled) { // Means playback is in progress
-      showStatus("Voice will change for the next sentence.");
-    }
-  });
-
-  // File upload
+  // File Upload
   document.getElementById('fileInput').addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -336,7 +356,7 @@
     globalSentences = [];
     textContainer.innerHTML = "";
 
-    // Avoid splitting after abbreviations like Dr., Mr., etc.
+    // Regex to avoid splitting after abbreviations
     const sentenceSplitRegex = /(?<!\b(?:Dr\.|Mr\.|Mrs\.|Ms\.|Prof\.|Sr\.|Jr\.|b\.))(?<=[.?!])\s+(?=[A-Z])/g;
 
     paragraphs.forEach((para, pIndex) => {
@@ -353,7 +373,7 @@
         span.classList.add("sentenceSpan");
         span.textContent = sentence;
 
-        // On click, select the sentence (don't auto-play)
+        // On click, select the sentence
         span.addEventListener('click', () => {
           currentSentenceIndex = globalIndex;
           stopPlayback();
@@ -391,7 +411,6 @@
     const languageCode = selectedOption.dataset.language || "en-US";
     const url = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`;
 
-    // If the voice is Chirp, use plain text. Otherwise, wrap in SSML.
     const inputData = voiceName.includes("Chirp") ? { text: text } : { ssml: wrapInSSML(text) };
     const data = {
       input: inputData,
@@ -524,8 +543,8 @@
     voices.sort((a, b) => {
       const aChirp = a.name.toLowerCase().includes("chirp");
       const bChirp = b.name.toLowerCase().includes("chirp");
-      if (aChirp && !bChirp) return -1; // a goes first
-      if (!aChirp && bChirp) return 1;  // b goes first
+      if (aChirp && !bChirp) return -1;
+      if (!aChirp && bChirp) return 1;
       return a.name.localeCompare(b.name);
     });
     voices.forEach(voice => {
