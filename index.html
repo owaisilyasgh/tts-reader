@@ -2,19 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <!-- Tell Google not to translate this page -->
+  <!-- Prevent translation -->
   <meta name="google" content="notranslate">
-  <!-- Specify content language -->
   <meta http-equiv="Content-Language" content="en">
-
   <title>Sentence-by-Sentence TTS Reader</title>
-
-  <!-- Google Font (Open Sans) -->
+  <!-- Google Font -->
   <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-
   <style>
-    /* Reset & font */
+    /* Global resets & font */
     * {
       box-sizing: border-box;
       margin: 0;
@@ -31,21 +27,23 @@
       color: #333;
     }
 
-    /* Container layout */
+    /* Container & Layout */
     .container {
       display: flex;
       flex-direction: column;
+      width: 100%;
       max-width: 900px;
-      margin: 40px auto;
-      padding: 20px;
+      height: 100vh;
+      margin: 0 auto;
+      padding: 16px; /* Slightly less than before to reduce whitespace */
       background: #fff;
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      min-height: 0; /* helps flex child (#textContainer) to shrink if needed */
+      overflow: hidden;
     }
 
     h1 {
-      margin-bottom: 1rem;
+      margin-bottom: 0.8rem; /* Reduced whitespace */
       font-size: 1.5rem;
       text-align: center;
       font-weight: 600;
@@ -57,7 +55,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 1rem;
+      margin-bottom: 0.8rem; /* Reduced whitespace */
       flex: 0 0 auto;
     }
     #voiceSelect {
@@ -82,23 +80,37 @@
       background-color: #0056b3;
     }
 
-    /* Advanced Settings Toggle */
+    /* Bigger Gear Icon */
     #advancedToggle {
       background: none;
       border: none;
-      font-size: 1.1rem;
+      font-size: 1.4rem; /* Larger than before */
       cursor: pointer;
       color: #555;
       transition: color 0.2s ease;
+      padding: 0.3rem;  /* Some padding so it's easier to tap on mobile */
     }
     #advancedToggle:hover {
       color: #000;
     }
 
+    /* Mode Selector */
+    #modeSelector {
+      margin-bottom: 0.8rem; /* Reduced whitespace */
+      flex: 0 0 auto;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+    #modeSelector label {
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+
     /* Advanced Settings Panel */
     #advancedSettings {
       display: none;
-      margin-bottom: 1rem;
+      margin-bottom: 0.8rem; /* Reduced whitespace */
       flex-wrap: wrap;
       align-items: center;
       gap: 0.5rem;
@@ -117,59 +129,58 @@
       max-width: 300px;
     }
 
-    /* File upload */
+    /* File Upload Section (visible in Upload mode) */
     #uploadSection {
-      margin-bottom: 1rem;
+      margin-bottom: 0.8rem; /* Reduced whitespace */
       flex: 0 0 auto;
+      display: none; /* toggled by mode */
     }
+    /* Hide actual file input; we'll trigger it via a custom button */
     #fileInput {
-      font-size: 0.95rem;
+      display: none;
     }
-
-    /* Text container */
-    #textContainer {
-      border: 1px solid #ccc;
-      padding: 10px;
+    /* Custom "Choose File" button */
+    #chooseFileBtn {
+      padding: 0.4rem 0.8rem;
+      background-color: #28a745;
+      border: none;
+      color: #fff;
       border-radius: 4px;
-      background-color: #fafafa;
-      line-height: 1.4;
-      margin-bottom: 1rem;
-      white-space: pre-wrap;
-      flex: 1 1 auto;   /* Let it expand/shrink vertically */
-      overflow-y: auto; /* Scroll if content is large */
-    }
-
-    .paragraph {
-      margin-bottom: 0.8rem;
-    }
-    .sentenceSpan {
       cursor: pointer;
-      display: inline;
-    }
-    .highlight {
-      background-color: #fff89a;
-      border: 1px solid #ffd347;
-      padding: 2px 4px;
-      border-radius: 4px;
       transition: background-color 0.2s ease;
-    }
-
-    /* Status bar */
-    #statusBar {
-      border: 1px solid #ccc;
-      padding: 0.8rem;
-      background-color: #f9f9f9;
-      border-radius: 4px;
-      text-align: center;
       font-size: 0.95rem;
-      color: #555;
-      margin-bottom: 0.5rem;
-      flex: 0 0 auto;
+    }
+    #chooseFileBtn:hover {
+      background-color: #218838;
     }
 
-    /* Playback Controls */
-    #controls {
+    /* Manual Controls */
+    #manualControls {
+      margin-bottom: 0.8rem; /* Reduced whitespace */
       flex: 0 0 auto;
+      display: flex;
+      gap: 0.5rem;
+    }
+    #processTextBtn, #clearTextBtn {
+      padding: 0.4rem 0.8rem;
+      background-color: #28a745;
+      border: none;
+      color: #fff;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      font-size: 0.95rem;
+    }
+    #processTextBtn:hover, #clearTextBtn:hover {
+      background-color: #218838;
+    }
+
+    /* Playback Controls (above text container) */
+    #controls {
+      margin-bottom: 0.8rem; /* Reduced whitespace */
+      flex: 0 0 auto;
+      display: flex;
+      gap: 0.5rem;
     }
     #controls button {
       padding: 0.4rem 0.8rem;
@@ -180,7 +191,6 @@
       cursor: pointer;
       transition: background-color 0.2s ease;
       font-size: 0.95rem;
-      margin-right: 0.5rem;
     }
     #controls button:hover {
       background-color: #0056b3;
@@ -190,18 +200,55 @@
       cursor: not-allowed;
     }
 
-    /* Audio player hidden by default */
+    /* Text Container */
+    #textContainer {
+      border: 1px solid #ccc;
+      padding: 10px;
+      border-radius: 4px;
+      background-color: #fafafa;
+      line-height: 1.4;
+      margin-bottom: 0.8rem; /* Reduced whitespace */
+      white-space: pre-wrap;
+      flex: 1 1 auto;
+      overflow-y: auto;
+      user-select: text;
+      outline: 2px dashed #aaa;
+    }
+    .sentenceSpan {
+      cursor: pointer;
+      display: inline;
+      white-space: pre-wrap;
+    }
+    .highlight {
+      background-color: #fff89a !important;
+      border: 2px solid #ffd347 !important;
+      padding: 2px 4px !important;
+      border-radius: 4px;
+    }
+
+    /* Status Bar */
+    #statusBar {
+      border: 1px solid #ccc;
+      padding: 0.8rem;
+      background-color: #f9f9f9;
+      border-radius: 4px;
+      text-align: center;
+      font-size: 0.95rem;
+      color: #555;
+      flex: 0 0 auto;
+    }
+
+    /* Audio Player hidden by default */
     #audioPlayer {
       display: none;
     }
 
-    /* Mobile adjustments */
+    /* Responsive Media Queries */
     @media (max-width: 600px) {
       .container {
         margin: 0;
-        padding: 15px;
+        padding: 12px;
         border-radius: 0;
-        min-height: 100vh;  /* fill screen height */
       }
       #topBar {
         flex-direction: column;
@@ -217,15 +264,16 @@
       #advancedSettings {
         flex-direction: column;
       }
-      /* Remove explicit height from text container so it can flex fully */
       #textContainer {
-        margin-bottom: 1rem;
+        height: calc(100vh - 280px);
+      }
+      #advancedToggle {
+        font-size: 1.6rem; /* even bigger on mobile */
       }
     }
   </style>
 </head>
 <body>
-
 <div class="container">
   <h1>Sentence-by-Sentence TTS Reader</h1>
 
@@ -235,11 +283,16 @@
       <select id="voiceSelect"></select>
       <button id="refreshVoicesBtn">Refresh Voices</button>
     </div>
-    <!-- Gear icon to toggle advanced settings -->
     <button id="advancedToggle" title="Advanced Settings">&#9881;</button>
   </div>
 
-  <!-- Advanced Settings Panel (hidden by default) -->
+  <!-- Mode Selector -->
+  <div id="modeSelector">
+    <label><input type="radio" name="inputMode" value="manual" checked> Manual Entry</label>
+    <label><input type="radio" name="inputMode" value="upload"> File Upload</label>
+  </div>
+
+  <!-- Advanced Settings Panel -->
   <div id="advancedSettings">
     <label for="apiKey">Google TTS API Key:</label>
     <input type="text" id="apiKey" placeholder="Enter your API Key">
@@ -247,60 +300,103 @@
     <input type="number" id="minSentenceLength" value="150" min="0">
   </div>
 
-  <!-- File upload control -->
+  <!-- File Upload Section (visible in Upload mode) -->
   <div id="uploadSection">
+    <!-- Hidden file input -->
     <input type="file" id="fileInput" accept=".txt">
+    <!-- Custom "Choose File" button -->
+    <button id="chooseFileBtn">Choose File</button>
   </div>
 
-  <!-- Container to display the text (paragraphs preserved) -->
-  <div id="textContainer"></div>
+  <!-- Manual Controls (visible in Manual mode) -->
+  <div id="manualControls">
+    <button id="processTextBtn">Process Text</button>
+    <button id="clearTextBtn">Clear Text</button>
+  </div>
 
   <!-- Playback Controls -->
   <div id="controls">
     <button id="playBtn" disabled>Play</button>
+    <button id="pauseBtn" disabled>Pause</button>
     <button id="stopBtn" disabled>Stop</button>
   </div>
+
+  <!-- Text Container -->
+  <div id="textContainer" contenteditable="true"></div>
 
   <!-- Status Bar -->
   <div id="statusBar">Status: Ready</div>
 
-  <!-- Hidden audio player -->
+  <!-- Hidden Audio Player -->
   <audio id="audioPlayer"></audio>
 </div>
 
 <script>
+  // Global state
   let globalSentences = [];
-  let paragraphs = [];
   let currentSentenceIndex = -1;
   let audioCache = {};
   let isStopped = false;
+  let isPaused = false;
   const DEFAULT_MIN_SENTENCE_LENGTH = 150;
 
+  // DOM Elements
   const advancedToggle = document.getElementById('advancedToggle');
   const advancedSettings = document.getElementById('advancedSettings');
   const apiKeyInput = document.getElementById('apiKey');
   const minSentenceLengthInput = document.getElementById('minSentenceLength');
   const textContainer = document.getElementById('textContainer');
+  const processTextBtn = document.getElementById('processTextBtn');
+  const clearTextBtn = document.getElementById('clearTextBtn');
   const playBtn = document.getElementById('playBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
   const stopBtn = document.getElementById('stopBtn');
   const audioPlayer = document.getElementById('audioPlayer');
   const statusBar = document.getElementById('statusBar');
   const voiceSelect = document.getElementById('voiceSelect');
+  const fileInput = document.getElementById('fileInput');
+  const chooseFileBtn = document.getElementById('chooseFileBtn');
 
-  // Toggle Advanced Settings
-  let advancedVisible = false;
+  // Mode Selector
+  document.querySelectorAll('input[name="inputMode"]').forEach(radio => {
+    radio.addEventListener('change', handleModeChange);
+  });
+  function handleModeChange() {
+    const mode = document.querySelector('input[name="inputMode"]:checked').value;
+    textContainer.innerHTML = "";
+    globalSentences = [];
+    audioCache = {};
+    currentSentenceIndex = -1;
+    playBtn.disabled = true;
+    pauseBtn.disabled = true;
+    stopBtn.disabled = true;
+    fileInput.value = "";
+
+    if (mode === "manual") {
+      textContainer.setAttribute("contenteditable", "true");
+      processTextBtn.style.display = "inline-block";
+      clearTextBtn.style.display = "inline-block";
+      document.getElementById('uploadSection').style.display = "none";
+    } else {
+      textContainer.setAttribute("contenteditable", "false");
+      processTextBtn.style.display = "none";
+      clearTextBtn.style.display = "none";
+      document.getElementById('uploadSection').style.display = "block";
+    }
+  }
+
+  // Toggle advanced settings
   advancedToggle.addEventListener('click', () => {
-    advancedVisible = !advancedVisible;
-    advancedSettings.style.display = advancedVisible ? 'flex' : 'none';
+    advancedSettings.style.display = (advancedSettings.style.display === "flex") ? "none" : "flex";
   });
 
   // Status Bar
-  function showStatus(message) {
-    statusBar.textContent = "Status: " + message;
-    console.log(message);
+  function showStatus(msg) {
+    statusBar.textContent = "Status: " + msg;
+    console.log(msg);
   }
 
-  // Load & Save API Key
+  // Load stored API key & min sentence length
   if (localStorage.getItem('googleTtsApiKey')) {
     apiKeyInput.value = localStorage.getItem('googleTtsApiKey');
   }
@@ -308,8 +404,6 @@
     localStorage.setItem('googleTtsApiKey', apiKeyInput.value);
     showStatus("API Key updated.");
   });
-
-  // Load & Save Min Sentence Length
   if (localStorage.getItem('minSentenceLength')) {
     minSentenceLengthInput.value = localStorage.getItem('minSentenceLength');
   } else {
@@ -320,84 +414,110 @@
     showStatus("Min Sentence Length updated to " + minSentenceLengthInput.value);
   });
 
-  // File Upload
-  document.getElementById('fileInput').addEventListener('change', function(e) {
+  // Manual Mode: Process & Clear
+  processTextBtn.addEventListener('click', () => {
+    processText(textContainer.innerText);
+    textContainer.setAttribute("contenteditable", "false");
+  });
+  clearTextBtn.addEventListener('click', () => {
+    textContainer.innerHTML = "";
+    globalSentences = [];
+    audioCache = {};
+    currentSentenceIndex = -1;
+    playBtn.disabled = true;
+    pauseBtn.disabled = true;
+    stopBtn.disabled = true;
+    textContainer.setAttribute("contenteditable", "true");
+    showStatus("Text cleared. Please enter new text.");
+  });
+
+  // File Upload Mode
+  chooseFileBtn.addEventListener('click', () => {
+    fileInput.click(); // Trigger the hidden file input
+  });
+  fileInput.addEventListener('change', e => {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = evt => processText(evt.target.result);
+    reader.onload = evt => {
+      textContainer.innerText = evt.target.result;
+      processText(evt.target.result);
+      fileInput.value = "";
+    };
     reader.readAsText(file);
   });
 
   // Combine short sentences
   function combineSentences(sentences) {
-    const minLength = parseInt(minSentenceLengthInput.value) || DEFAULT_MIN_SENTENCE_LENGTH;
+    const minLen = parseInt(minSentenceLengthInput.value) || DEFAULT_MIN_SENTENCE_LENGTH;
     let combined = [];
     let buffer = "";
-    for (let i = 0; i < sentences.length; i++) {
-      let sentence = sentences[i].trim();
-      if (!sentence) continue;
-      if (buffer === "") {
-        buffer = sentence;
-      } else {
-        buffer += " " + sentence;
-      }
-      if (buffer.length >= minLength || i === sentences.length - 1) {
+    sentences.forEach((s, i) => {
+      if (typeof s !== "string") return;
+      let sentence = s.trim();
+      if (!sentence) return;
+      buffer = buffer ? buffer + " " + sentence : sentence;
+      if (buffer.length >= minLen || i === sentences.length - 1) {
         combined.push(buffer);
         buffer = "";
       }
-    }
+    });
     return combined;
   }
 
-  // Process text: paragraphs -> sentences -> combine short
+  // Process text: keep blank paragraphs, then split into sentences
   function processText(text) {
-    paragraphs = text.split(/\n\s*\n/).filter(p => p.trim() !== "");
+    // Split paragraphs by blank lines (handles CRLF and LF)
+    const paragraphs = text.split(/\r?\n\s*\r?\n/);
     globalSentences = [];
     textContainer.innerHTML = "";
 
-    // Avoid splitting after abbreviations
+    // Regex to avoid splitting on abbreviations
     const sentenceSplitRegex = /(?<!\b(?:Dr\.|Mr\.|Mrs\.|Ms\.|Prof\.|Sr\.|Jr\.|b\.))(?<=[.?!])\s+(?=[A-Z])/g;
 
     paragraphs.forEach((para, pIndex) => {
-      let raw = para.split(sentenceSplitRegex);
-      let sentences = combineSentences(raw);
-
       const pDiv = document.createElement('div');
       pDiv.classList.add('paragraph');
 
-      sentences.forEach(sentence => {
-        const span = document.createElement('span');
-        const globalIndex = globalSentences.length;
-        span.id = "sentence_" + globalIndex;
-        span.classList.add("sentenceSpan");
-        span.textContent = sentence;
+      if (para.trim() === "") {
+        // Blank paragraph => line break
+        pDiv.innerHTML = "<br>";
+      } else {
+        let rawSentences = para.split(sentenceSplitRegex);
+        let finalSentences = combineSentences(rawSentences);
 
-        span.addEventListener('click', () => {
-          currentSentenceIndex = globalIndex;
-          stopPlayback();
-          clearHighlight();
-          highlightSentence(globalIndex);
-          showStatus(`Sentence ${globalIndex + 1} selected. Press Play to start.`);
+        finalSentences.forEach(sentence => {
+          const span = document.createElement('span');
+          const globalIndex = globalSentences.length;
+          span.id = "sentence_" + globalIndex;
+          span.classList.add("sentenceSpan");
+          span.textContent = sentence;
+          span.addEventListener('click', () => {
+            currentSentenceIndex = globalIndex;
+            stopPlayback();
+            clearHighlight();
+            highlightSentence(globalIndex);
+            showStatus(`Sentence ${globalIndex + 1} selected. Press Play to start.`);
+          });
+          pDiv.appendChild(span);
+          pDiv.appendChild(document.createTextNode(" "));
+          globalSentences.push({ paragraphIndex: pIndex, sentenceText: sentence });
         });
-
-        pDiv.appendChild(span);
-        pDiv.appendChild(document.createTextNode(" "));
-        globalSentences.push({ paragraphIndex: pIndex, sentenceText: sentence });
-      });
-
+      }
       textContainer.appendChild(pDiv);
     });
+
     showStatus(`Processed text: ${globalSentences.length} sentences.`);
-    playBtn.disabled = globalSentences.length === 0;
+    playBtn.disabled = (globalSentences.length === 0);
+    pauseBtn.disabled = true;
+    stopBtn.disabled = true;
+    audioCache = {};
   }
 
-  // Wrap text in SSML
+  // TTS: wrap in SSML or plain text if "Chirp"
   function wrapInSSML(text) {
     return `<speak>${text}</speak>`;
   }
-
-  // TTS API call
   async function callTTS(text) {
     const apiKey = apiKeyInput.value.trim();
     if (!apiKey) {
@@ -408,14 +528,13 @@
     const voiceName = selectedOption.value;
     const languageCode = selectedOption.dataset.language || "en-US";
     const url = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`;
+    const inputData = voiceName.includes("Chirp") ? { text } : { ssml: wrapInSSML(text) };
 
-    const inputData = voiceName.includes("Chirp") ? { text: text } : { ssml: wrapInSSML(text) };
     const data = {
       input: inputData,
-      voice: { languageCode: languageCode, name: voiceName },
+      voice: { languageCode, name: voiceName },
       audioConfig: { audioEncoding: "MP3" }
     };
-
     showStatus(`Sending sentence ${currentSentenceIndex + 1} to TTS API...`);
     const response = await fetch(url, {
       method: "POST",
@@ -431,25 +550,22 @@
     return result.audioContent;
   }
 
-  // Convert base64 audio to Blob URL
+  // Convert base64 to Blob URL
   function base64ToBlobURL(base64, mime) {
     const byteCharacters = atob(base64);
-    const byteNumbers = new Array(byteCharacters.length);
-    for (let i = 0; i < byteCharacters.length; i++) {
-      byteNumbers[i] = byteCharacters.charCodeAt(i);
-    }
+    const byteNumbers = Array.from(byteCharacters, c => c.charCodeAt(0));
     const byteArray = new Uint8Array(byteNumbers);
     const blob = new Blob([byteArray], { type: mime });
     return URL.createObjectURL(blob);
   }
 
-  // Play the sentence at the specified global sentence index
+  // Playback
   async function playSentence(index) {
     if (index < 0 || index >= globalSentences.length) return;
     isStopped = false;
+    isPaused = false;
     highlightSentence(index);
 
-    // Check cache
     if (audioCache[index]) {
       showStatus(`Playing cached audio for sentence ${index + 1}.`);
       audioPlayer.src = audioCache[index];
@@ -469,6 +585,7 @@
 
     audioPlayer.style.display = "block";
     audioPlayer.play();
+    pauseBtn.disabled = false;
     stopBtn.disabled = false;
     playBtn.disabled = true;
     currentSentenceIndex = index;
@@ -483,11 +600,12 @@
         showStatus("Reached end of text.");
         clearHighlight();
         playBtn.disabled = false;
+        pauseBtn.disabled = true;
         stopBtn.disabled = true;
       }
     };
 
-    // Prefetch next sentence
+    // Prefetch next
     const nextIndex = index + 1;
     if (nextIndex < globalSentences.length && !audioCache[nextIndex]) {
       callTTS(globalSentences[nextIndex].sentenceText)
@@ -498,44 +616,61 @@
         .catch(err => showStatus(`Prefetch error for sentence ${nextIndex + 1}: ${err.message}`));
     }
   }
-
-  // Highlight the sentence span
   function highlightSentence(index) {
     clearHighlight();
-    const sentenceSpan = document.getElementById("sentence_" + index);
-    if (sentenceSpan) {
-      sentenceSpan.classList.add("highlight");
-      sentenceSpan.parentElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const span = document.getElementById("sentence_" + index);
+    if (span) {
+      span.classList.add("highlight");
+      span.parentElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }
-
-  // Remove highlight
   function clearHighlight() {
-    document.querySelectorAll('.sentenceSpan').forEach(span => span.classList.remove('highlight'));
+    document.querySelectorAll('.sentenceSpan').forEach(s => s.classList.remove('highlight'));
   }
-
-  // Stop playback
   function stopPlayback() {
     isStopped = true;
+    isPaused = false;
     audioPlayer.pause();
     audioPlayer.currentTime = 0;
     showStatus("Playback stopped by user.");
     stopBtn.disabled = true;
+    pauseBtn.disabled = true;
     playBtn.disabled = false;
     clearHighlight();
   }
-
-  playBtn.addEventListener('click', () => {
-    if (currentSentenceIndex < 0) {
-      currentSentenceIndex = 0;
+  function pausePlayback() {
+    if (!isStopped && !isPaused) {
+      audioPlayer.pause();
+      isPaused = true;
+      showStatus("Playback paused.");
+      playBtn.disabled = false;
+      pauseBtn.disabled = true;
     }
-    showStatus(`Starting playback from sentence ${currentSentenceIndex + 1}.`);
-    playSentence(currentSentenceIndex);
-  });
-
+  }
+  function startPlayback() {
+    const mode = document.querySelector('input[name="inputMode"]:checked').value;
+    if (mode === "manual") {
+      // Reprocess text to apply new voice changes
+      processText(textContainer.innerText);
+    }
+    if (isPaused) {
+      isPaused = false;
+      showStatus("Playback resumed.");
+      audioPlayer.play();
+      playBtn.disabled = true;
+      pauseBtn.disabled = false;
+      stopBtn.disabled = false;
+    } else {
+      if (currentSentenceIndex < 0) currentSentenceIndex = 0;
+      showStatus(`Starting playback from sentence ${currentSentenceIndex + 1}.`);
+      playSentence(currentSentenceIndex);
+    }
+  }
+  playBtn.addEventListener('click', startPlayback);
+  pauseBtn.addEventListener('click', pausePlayback);
   stopBtn.addEventListener('click', stopPlayback);
 
-  // Sorting so "Chirp" voices appear at top
+  // Voice Dropdown
   function populateVoiceDropdown(voices) {
     voiceSelect.innerHTML = "";
     voices.sort((a, b) => {
@@ -547,14 +682,13 @@
     });
     voices.forEach(voice => {
       const friendlyName = createFriendlyVoiceLabel(voice);
-      const option = document.createElement('option');
-      option.value = voice.name;
-      option.dataset.language = voice.languageCodes[0];
-      option.textContent = friendlyName;
-      voiceSelect.appendChild(option);
+      const opt = document.createElement('option');
+      opt.value = voice.name;
+      opt.dataset.language = voice.languageCodes[0];
+      opt.textContent = friendlyName;
+      voiceSelect.appendChild(opt);
     });
   }
-
   function createFriendlyVoiceLabel(voice) {
     const rawName = voice.name;
     const language = voice.languageCodes[0];
@@ -563,7 +697,6 @@
     cleaned = cleaned.replace(/-/g, " ");
     return `${cleaned} (${gender.toLowerCase()}) - ${language}`;
   }
-
   async function updateVoiceDropdown(force = false) {
     const apiKey = apiKeyInput.value.trim();
     if (!apiKey) {
@@ -578,21 +711,15 @@
           populateVoiceDropdown(voices);
           showStatus("Loaded voices from cache.");
           return;
-        } catch(e) {
-          // fall through
-        }
+        } catch(e) {}
       }
     }
     const url = `https://texttospeech.googleapis.com/v1/voices?key=${apiKey}`;
     try {
       const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error("Error fetching voices: " + response.statusText);
-      }
+      if (!response.ok) throw new Error("Error fetching voices: " + response.statusText);
       const data = await response.json();
-      const voices = data.voices.filter(voice =>
-        voice.languageCodes.some(lc => lc.toLowerCase().startsWith("en"))
-      );
+      const voices = data.voices.filter(v => v.languageCodes.some(lc => lc.toLowerCase().startsWith("en")));
       populateVoiceDropdown(voices);
       localStorage.setItem("cachedVoices", JSON.stringify(voices));
       showStatus("Voice dropdown updated from API and cached.");
@@ -602,11 +729,9 @@
     }
   }
 
-  document.getElementById('refreshVoicesBtn').addEventListener('click', () => {
-    updateVoiceDropdown(true);
-  });
-
-  // Initial voice dropdown population
+  document.getElementById('refreshVoicesBtn').addEventListener('click', () => { updateVoiceDropdown(true); });
+  
+  // Initialize
   updateVoiceDropdown();
 </script>
 </body>
