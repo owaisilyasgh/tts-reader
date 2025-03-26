@@ -47,8 +47,7 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 8px;
-      flex: 0 0 auto;
-      flex-wrap: nowrap; /* Force one row */
+      flex-wrap: nowrap; /* keep one row */
     }
     #voiceSelect {
       padding: 0.4rem;
@@ -72,7 +71,7 @@
     #advancedToggle {
       background: none;
       border: none;
-      font-size: 1.8rem; /* Reduced gear icon size on mobile */
+      font-size: 1.8rem;
       cursor: pointer;
       color: #555;
       padding: 0.4rem;
@@ -111,7 +110,7 @@
     }
     #fileInput { display: none; }
 
-    /* ADVANCED SETTINGS (collapsible) */
+    /* COLLAPSIBLE ADVANCED SETTINGS */
     #advancedSettings {
       max-height: 0px;
       overflow: hidden;
@@ -146,6 +145,19 @@
       border-radius: 4px;
     }
 
+    /* STATUS BAR: Placed above playback controls */
+    #statusBar {
+      border: 1px solid #ccc;
+      padding: 8px;
+      background-color: #f9f9f9;
+      border-radius: 4px;
+      text-align: center;
+      font-size: 1rem;
+      color: #555;
+      flex: 0 0 auto;
+      margin-bottom: 8px;
+    }
+
     /* STICKY PLAYBACK CONTROLS */
     #controls {
       position: sticky;
@@ -173,36 +185,30 @@
     #controls button:hover { background-color: #0056b3; }
     #controls button:disabled { background-color: #ccc; cursor: not-allowed; }
 
-    /* STATUS BAR */
-    #statusBar {
-      border: 1px solid #ccc;
-      padding: 8px;
-      background-color: #f9f9f9;
-      border-radius: 4px;
-      text-align: center;
-      font-size: 1rem;
-      color: #555;
-      flex: 0 0 auto;
-    }
-
     /* MOBILE ADJUSTMENTS */
     @media (max-width: 600px) {
       .container { padding: 8px; border-radius: 0; }
       h1 { font-size: 1.2rem; margin-bottom: 4px; }
-      #topBar { flex-direction: row; align-items: center; gap: 4px; }
-      #voiceSelect, #refreshVoicesBtn { width: auto; min-height: 44px; font-size: 1rem; }
-      #advancedToggle { font-size: 1.8rem; }
+      #topBar { flex-direction: row; gap: 4px; }
+      #voiceSelect, #refreshVoicesBtn { min-height: 44px; font-size: 1rem; }
+      #advancedToggle { font-size: 2rem; }
       #modeAndActions { flex-direction: column; gap: 4px; }
-      #modeSelector { width: 100%; flex-direction: row; gap: 8px; }
+      #modeSelector { width: 100%; flex-direction: row; gap: 4px; }
       #manualControls, #uploadSection { width: 100%; flex-direction: row; gap: 4px; }
       #processTextBtn, #clearTextBtn, #chooseFileBtn { width: 100%; min-height: 44px; font-size: 1rem; }
-      #textContainer {
-        font-size: 1.3rem; /* Larger text on mobile */
-        line-height: 1.5;
-        height: calc(100vh - 370px);
-      }
+      /* Increase text container font size to 2rem on mobile */
+      #textContainer { font-size: 2rem; line-height: 1.5; height: calc(100vh - 440px); margin-bottom: 4px; }
       #controls { font-size: 1rem; padding: 8px; gap: 8px; }
       #controls button { min-height: 44px; font-size: 1rem; }
+      /* Fix status bar: position it fixed above playback controls */
+      #statusBar {
+        position: fixed;
+        bottom: 60px; /* adjust based on controls height */
+        left: 0;
+        right: 0;
+        margin: 0 16px;
+        z-index: 11;
+      }
     }
   </style>
 </head>
@@ -219,7 +225,7 @@
     <button id="advancedToggle" title="Advanced Settings">&#9881;</button>
   </div>
 
-  <!-- Advanced Settings Panel (collapsible) -->
+  <!-- Collapsible Advanced Settings Panel -->
   <div id="advancedSettings">
     <label for="apiKey">Google TTS API Key:</label>
     <input type="text" id="apiKey" placeholder="Enter your API Key">
@@ -249,15 +255,15 @@
   <!-- Text Container -->
   <div id="textContainer" contenteditable="true"></div>
 
+  <!-- Status Bar (will be fixed on mobile) -->
+  <div id="statusBar">Status: Ready</div>
+
   <!-- Sticky Playback Controls -->
   <div id="controls">
     <button id="playBtn" disabled>Play</button>
     <button id="pauseBtn" disabled>Pause</button>
     <button id="stopBtn" disabled>Stop</button>
   </div>
-
-  <!-- Status Bar -->
-  <div id="statusBar">Status: Ready</div>
 
   <!-- Hidden Audio Player -->
   <audio id="audioPlayer"></audio>
@@ -357,7 +363,7 @@
       clearTextBtn.style.display = "inline-block";
       document.getElementById('uploadSection').style.display = "none";
     } else {
-      textContainer.setAttribute("contenteditable", "true"); // keep it editable for formatting
+      textContainer.setAttribute("contenteditable", "false");
       processTextBtn.style.display = "none";
       clearTextBtn.style.display = "none";
       document.getElementById('uploadSection').style.display = "flex";
@@ -394,6 +400,8 @@
     reader.onload = evt => {
       textContainer.innerText = evt.target.result;
       processText(evt.target.result);
+      // Ensure non-editable in upload mode
+      textContainer.setAttribute("contenteditable", "false");
       fileInput.value = "";
     };
     reader.readAsText(file);
@@ -420,19 +428,17 @@
   }
 
   function processText(text) {
-    // Split paragraphs, preserving blank ones
-    const paraArray = text.split(/\r?\n\s*\r?\n/);
+    const paragraphs = text.split(/\r?\n\s*\r?\n/);
     globalSentences = [];
     textContainer.innerHTML = "";
     const sentenceSplitRegex = /(?<!\b(?:Dr\.|Mr\.|Mrs\.|Ms\.|Prof\.|Sr\.|Jr\.|b\.))(?<=[.?!])\s+(?=[A-Z])/g;
-    paraArray.forEach((para, pIndex) => {
+    paragraphs.forEach((para, pIndex) => {
       const pDiv = document.createElement('div');
       pDiv.classList.add('paragraph');
-      if (para.trim() === "") {
-        pDiv.innerHTML = "<br>";
-      } else {
-        let rawSentences = para.split(sentenceSplitRegex);
-        let finalSentences = combineSentences(rawSentences);
+      if (para.trim() === "") { pDiv.innerHTML = "<br>"; }
+      else {
+        let raw = para.split(sentenceSplitRegex);
+        let finalSentences = combineSentences(raw);
         finalSentences.forEach(sentence => {
           const span = document.createElement('span');
           const globalIndex = globalSentences.length;
@@ -463,10 +469,7 @@
   /*********************************************************
    * TTS & PLAYBACK
    *********************************************************/
-  function wrapInSSML(text) {
-    return `<speak>${text}</speak>`;
-  }
-
+  function wrapInSSML(text) { return `<speak>${text}</speak>`; }
   async function callTTS(text) {
     const apiKey = apiKeyInput.value.trim();
     if (!apiKey) { alert("Please enter your Google TTS API Key."); return; }
@@ -475,11 +478,7 @@
     const languageCode = selectedOption.dataset.language || "en-US";
     const url = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`;
     const inputData = voiceName.includes("Chirp") ? { text } : { ssml: wrapInSSML(text) };
-    const data = {
-      input: inputData,
-      voice: { languageCode, name: voiceName },
-      audioConfig: { audioEncoding: "MP3" }
-    };
+    const data = { input: inputData, voice: { languageCode, name: voiceName }, audioConfig: { audioEncoding: "MP3" } };
     showStatus(`Sending sentence ${currentSentenceIndex + 1} to TTS API...`);
     const response = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
     if (!response.ok) {
@@ -628,9 +627,7 @@
       voiceSelect.appendChild(opt);
     });
     const savedVoice = localStorage.getItem("selectedVoice");
-    if (savedVoice) {
-      voiceSelect.value = savedVoice;
-    }
+    if (savedVoice) { voiceSelect.value = savedVoice; }
   }
   function createFriendlyVoiceLabel(voice) {
     const rawName = voice.name;
@@ -642,7 +639,10 @@
   }
   async function updateVoiceDropdown(force = false) {
     const apiKey = apiKeyInput.value.trim();
-    if (!apiKey) { alert("Please enter your API Key to refresh voices."); return; }
+    if (!apiKey) {
+      alert("Please enter your API Key to refresh voices.");
+      return;
+    }
     if (!force) {
       const cachedVoices = localStorage.getItem("cachedVoices");
       if (cachedVoices) {
