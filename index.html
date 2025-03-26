@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <!-- Prevent translation -->
+  <!-- Prevent automatic translation -->
   <meta name="google" content="notranslate">
   <meta http-equiv="Content-Language" content="en">
   <title>Sentence-by-Sentence TTS Reader</title>
@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    /* Global resets & font */
+    /* GLOBAL RESETS & FONT */
     * {
       box-sizing: border-box;
       margin: 0;
@@ -27,43 +27,42 @@
       color: #333;
     }
 
-    /* Container & Layout */
+    /* MAIN CONTAINER */
     .container {
       display: flex;
       flex-direction: column;
       width: 100%;
       max-width: 900px;
-      height: 100vh;
+      min-height: 100vh;
       margin: 0 auto;
-      padding: 16px; /* Slightly less than before to reduce whitespace */
+      padding: 12px;  /* smaller padding to reduce whitespace */
       background: #fff;
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      overflow: hidden;
+      overflow: visible;
     }
 
     h1 {
-      margin-bottom: 0.8rem; /* Reduced whitespace */
-      font-size: 1.5rem;
+      margin-bottom: 4px;
+      font-size: 1.4rem;
       text-align: center;
       font-weight: 600;
       color: #333;
     }
 
-    /* Top Bar: Voice Select, Refresh, Advanced Toggle */
+    /* TOP BAR */
     #topBar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 0.8rem; /* Reduced whitespace */
-      flex: 0 0 auto;
+      margin-bottom: 4px;
     }
     #voiceSelect {
-      padding: 0.3rem;
-      border-radius: 4px;
+      padding: 0.4rem;
       border: 1px solid #ccc;
-      max-width: 300px;
-      font-size: 0.95rem;
+      border-radius: 4px;
+      font-size: 1rem;
+      min-height: 40px;
     }
     #refreshVoicesBtn {
       padding: 0.4rem 0.8rem;
@@ -72,53 +71,38 @@
       color: #fff;
       border-radius: 4px;
       cursor: pointer;
-      transition: background-color 0.2s ease;
-      font-size: 0.95rem;
-      margin-left: 0.5rem;
+      font-size: 1rem;
+      min-height: 40px;
+      margin-left: 4px;
     }
     #refreshVoicesBtn:hover {
       background-color: #0056b3;
     }
-
-    /* Bigger Gear Icon */
     #advancedToggle {
       background: none;
       border: none;
-      font-size: 1.4rem; /* Larger than before */
+      font-size: 1.4rem;
       cursor: pointer;
       color: #555;
-      transition: color 0.2s ease;
-      padding: 0.3rem;  /* Some padding so it's easier to tap on mobile */
+      padding: 0.4rem;
+      min-height: 40px;
     }
     #advancedToggle:hover {
       color: #000;
     }
 
-    /* Mode Selector */
-    #modeSelector {
-      margin-bottom: 0.8rem; /* Reduced whitespace */
-      flex: 0 0 auto;
-      display: flex;
-      gap: 1rem;
-      align-items: center;
-    }
-    #modeSelector label {
-      font-size: 0.95rem;
-      cursor: pointer;
-    }
-
-    /* Advanced Settings Panel */
+    /* ADVANCED SETTINGS (COLLAPSIBLE) */
     #advancedSettings {
-      display: none;
-      margin-bottom: 0.8rem; /* Reduced whitespace */
+      max-height: 0px;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+      display: flex;
       flex-wrap: wrap;
-      align-items: center;
-      gap: 0.5rem;
-      flex: 0 0 auto;
+      gap: 8px;
+      margin-bottom: 4px;
     }
     #advancedSettings label {
       font-weight: 600;
-      margin-right: 0.5rem;
     }
     #advancedSettings input[type="text"],
     #advancedSettings input[type="number"] {
@@ -126,20 +110,42 @@
       border: 1px solid #ccc;
       border-radius: 4px;
       font-size: 0.95rem;
-      max-width: 300px;
+      max-width: 200px;
     }
 
-    /* File Upload Section (visible in Upload mode) */
+    /* MODE + ACTIONS in ONE ROW (DESKTOP) */
+    #modeAndActions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+      gap: 8px;
+      flex-wrap: wrap; /* if there's not enough space, wrap to next line */
+    }
+
+    /* Mode radios */
+    #modeSelector {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    #modeSelector label {
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Manual & Upload sections share the row */
+    #manualControls,
     #uploadSection {
-      margin-bottom: 0.8rem; /* Reduced whitespace */
-      flex: 0 0 auto;
-      display: none; /* toggled by mode */
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
-    /* Hide actual file input; we'll trigger it via a custom button */
-    #fileInput {
-      display: none;
-    }
-    /* Custom "Choose File" button */
+    #processTextBtn,
+    #clearTextBtn,
     #chooseFileBtn {
       padding: 0.4rem 0.8rem;
       background-color: #28a745;
@@ -147,72 +153,32 @@
       color: #fff;
       border-radius: 4px;
       cursor: pointer;
-      transition: background-color 0.2s ease;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
+      min-height: 40px;
     }
+    #processTextBtn:hover,
+    #clearTextBtn:hover,
     #chooseFileBtn:hover {
       background-color: #218838;
     }
-
-    /* Manual Controls */
-    #manualControls {
-      margin-bottom: 0.8rem; /* Reduced whitespace */
-      flex: 0 0 auto;
-      display: flex;
-      gap: 0.5rem;
-    }
-    #processTextBtn, #clearTextBtn {
-      padding: 0.4rem 0.8rem;
-      background-color: #28a745;
-      border: none;
-      color: #fff;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background-color 0.2s ease;
-      font-size: 0.95rem;
-    }
-    #processTextBtn:hover, #clearTextBtn:hover {
-      background-color: #218838;
+    #fileInput {
+      display: none;
     }
 
-    /* Playback Controls (above text container) */
-    #controls {
-      margin-bottom: 0.8rem; /* Reduced whitespace */
-      flex: 0 0 auto;
-      display: flex;
-      gap: 0.5rem;
-    }
-    #controls button {
-      padding: 0.4rem 0.8rem;
-      background-color: #007bff;
-      border: none;
-      color: #fff;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background-color 0.2s ease;
-      font-size: 0.95rem;
-    }
-    #controls button:hover {
-      background-color: #0056b3;
-    }
-    #controls button:disabled {
-      background-color: #ccc;
-      cursor: not-allowed;
-    }
-
-    /* Text Container */
+    /* TEXT CONTAINER */
     #textContainer {
       border: 1px solid #ccc;
-      padding: 10px;
+      padding: 8px;
       border-radius: 4px;
       background-color: #fafafa;
-      line-height: 1.4;
-      margin-bottom: 0.8rem; /* Reduced whitespace */
+      margin-bottom: 4px;
       white-space: pre-wrap;
       flex: 1 1 auto;
       overflow-y: auto;
       user-select: text;
       outline: 2px dashed #aaa;
+      font-size: 1rem;  /* default text size on desktop */
+      line-height: 1.4;
     }
     .sentenceSpan {
       cursor: pointer;
@@ -226,49 +192,110 @@
       border-radius: 4px;
     }
 
-    /* Status Bar */
+    /* STICKY PLAYBACK CONTROLS */
+    #controls {
+      position: sticky;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #fff;
+      padding: 4px;
+      border-top: 1px solid #ccc;
+      display: flex;
+      gap: 4px;
+      z-index: 10;
+    }
+    #controls button {
+      padding: 0.4rem 0.8rem;
+      background-color: #007bff;
+      border: none;
+      color: #fff;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      min-height: 40px;
+      flex: 1; /* fill row if needed */
+    }
+    #controls button:hover {
+      background-color: #0056b3;
+    }
+    #controls button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+
+    /* STATUS BAR */
     #statusBar {
       border: 1px solid #ccc;
-      padding: 0.8rem;
+      padding: 6px;
       background-color: #f9f9f9;
       border-radius: 4px;
       text-align: center;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       color: #555;
-      flex: 0 0 auto;
+      margin-top: 4px;
     }
 
-    /* Audio Player hidden by default */
-    #audioPlayer {
-      display: none;
-    }
-
-    /* Responsive Media Queries */
+    /* MOBILE FIRST ADJUSTMENTS */
     @media (max-width: 600px) {
       .container {
-        margin: 0;
-        padding: 12px;
+        padding: 8px;
         border-radius: 0;
+      }
+      h1 {
+        font-size: 1.2rem;
+        margin-bottom: 4px;
       }
       #topBar {
         flex-direction: column;
         align-items: flex-start;
-        gap: 0.5rem;
+        gap: 4px;
       }
-      #voiceSelect {
-        max-width: 100%;
-      }
-      #refreshVoicesBtn {
-        margin-left: 0;
-      }
-      #advancedSettings {
-        flex-direction: column;
-      }
-      #textContainer {
-        height: calc(100vh - 280px);
+      #voiceSelect, #refreshVoicesBtn {
+        width: 100%;
+        min-height: 44px;
+        font-size: 1rem;
       }
       #advancedToggle {
-        font-size: 1.6rem; /* even bigger on mobile */
+        font-size: 1.8rem;
+        align-self: flex-end;
+      }
+      #modeAndActions {
+        flex-direction: column;
+        gap: 4px;
+      }
+      #modeSelector {
+        width: 100%;
+        gap: 4px;
+      }
+      #manualControls,
+      #uploadSection {
+        width: 100%;
+        gap: 4px;
+        flex-wrap: wrap;
+      }
+      #processTextBtn,
+      #clearTextBtn,
+      #chooseFileBtn {
+        width: 100%;
+        min-height: 44px;
+        font-size: 1rem;
+      }
+      /* Increase text container font size significantly */
+      #textContainer {
+        font-size: 1.3rem; /* about double normal if your base is ~14px */
+        line-height: 1.5;
+        margin-bottom: 4px;
+        height: calc(100vh - 360px); /* adjust so sticky controls are visible */
+      }
+      #controls {
+        font-size: 1rem;
+        padding: 8px;
+        gap: 8px;
+      }
+      #controls button {
+        min-height: 44px;
+        font-size: 1rem;
       }
     }
   </style>
@@ -277,7 +304,7 @@
 <div class="container">
   <h1>Sentence-by-Sentence TTS Reader</h1>
 
-  <!-- Top Bar: Voice Select, Refresh, Advanced Toggle -->
+  <!-- Top Bar: Voice & Refresh & Gear -->
   <div id="topBar">
     <div style="display: flex; align-items: center;">
       <select id="voiceSelect"></select>
@@ -286,13 +313,7 @@
     <button id="advancedToggle" title="Advanced Settings">&#9881;</button>
   </div>
 
-  <!-- Mode Selector -->
-  <div id="modeSelector">
-    <label><input type="radio" name="inputMode" value="manual" checked> Manual Entry</label>
-    <label><input type="radio" name="inputMode" value="upload"> File Upload</label>
-  </div>
-
-  <!-- Advanced Settings Panel -->
+  <!-- Collapsible Advanced Settings -->
   <div id="advancedSettings">
     <label for="apiKey">Google TTS API Key:</label>
     <input type="text" id="apiKey" placeholder="Enter your API Key">
@@ -300,29 +321,36 @@
     <input type="number" id="minSentenceLength" value="150" min="0">
   </div>
 
-  <!-- File Upload Section (visible in Upload mode) -->
-  <div id="uploadSection">
-    <!-- Hidden file input -->
-    <input type="file" id="fileInput" accept=".txt">
-    <!-- Custom "Choose File" button -->
-    <button id="chooseFileBtn">Choose File</button>
+  <!-- Combined row for mode & action buttons on desktop -->
+  <div id="modeAndActions">
+    <!-- Mode Selector -->
+    <div id="modeSelector">
+      <label><input type="radio" name="inputMode" value="manual" checked> Manual Entry</label>
+      <label><input type="radio" name="inputMode" value="upload"> File Upload</label>
+    </div>
+
+    <!-- Manual Controls (hidden in upload mode) -->
+    <div id="manualControls">
+      <button id="processTextBtn">Process Text</button>
+      <button id="clearTextBtn">Clear Text</button>
+    </div>
+
+    <!-- Upload Section (hidden in manual mode) -->
+    <div id="uploadSection">
+      <input type="file" id="fileInput" accept=".txt">
+      <button id="chooseFileBtn">Choose File</button>
+    </div>
   </div>
 
-  <!-- Manual Controls (visible in Manual mode) -->
-  <div id="manualControls">
-    <button id="processTextBtn">Process Text</button>
-    <button id="clearTextBtn">Clear Text</button>
-  </div>
+  <!-- Text Container -->
+  <div id="textContainer" contenteditable="true"></div>
 
-  <!-- Playback Controls -->
+  <!-- Sticky Playback Controls at bottom -->
   <div id="controls">
     <button id="playBtn" disabled>Play</button>
     <button id="pauseBtn" disabled>Pause</button>
     <button id="stopBtn" disabled>Stop</button>
   </div>
-
-  <!-- Text Container -->
-  <div id="textContainer" contenteditable="true"></div>
 
   <!-- Status Bar -->
   <div id="statusBar">Status: Ready</div>
@@ -332,7 +360,9 @@
 </div>
 
 <script>
-  // Global state
+  /*********************************************************
+   * GLOBAL STATE
+   *********************************************************/
   let globalSentences = [];
   let currentSentenceIndex = -1;
   let audioCache = {};
@@ -340,7 +370,9 @@
   let isPaused = false;
   const DEFAULT_MIN_SENTENCE_LENGTH = 150;
 
-  // DOM Elements
+  /*********************************************************
+   * DOM ELEMENTS
+   *********************************************************/
   const advancedToggle = document.getElementById('advancedToggle');
   const advancedSettings = document.getElementById('advancedSettings');
   const apiKeyInput = document.getElementById('apiKey');
@@ -357,46 +389,31 @@
   const fileInput = document.getElementById('fileInput');
   const chooseFileBtn = document.getElementById('chooseFileBtn');
 
-  // Mode Selector
-  document.querySelectorAll('input[name="inputMode"]').forEach(radio => {
-    radio.addEventListener('change', handleModeChange);
-  });
-  function handleModeChange() {
-    const mode = document.querySelector('input[name="inputMode"]:checked').value;
-    textContainer.innerHTML = "";
-    globalSentences = [];
-    audioCache = {};
-    currentSentenceIndex = -1;
-    playBtn.disabled = true;
-    pauseBtn.disabled = true;
-    stopBtn.disabled = true;
-    fileInput.value = "";
-
-    if (mode === "manual") {
-      textContainer.setAttribute("contenteditable", "true");
-      processTextBtn.style.display = "inline-block";
-      clearTextBtn.style.display = "inline-block";
-      document.getElementById('uploadSection').style.display = "none";
-    } else {
-      textContainer.setAttribute("contenteditable", "false");
-      processTextBtn.style.display = "none";
-      clearTextBtn.style.display = "none";
-      document.getElementById('uploadSection').style.display = "block";
-    }
-  }
-
-  // Toggle advanced settings
+  /*********************************************************
+   * COLLAPSIBLE ADVANCED SETTINGS
+   *********************************************************/
+  let advancedVisible = false;
   advancedToggle.addEventListener('click', () => {
-    advancedSettings.style.display = (advancedSettings.style.display === "flex") ? "none" : "flex";
+    advancedVisible = !advancedVisible;
+    if (advancedVisible) {
+      advancedSettings.style.maxHeight = "400px";
+    } else {
+      advancedSettings.style.maxHeight = "0px";
+    }
   });
 
-  // Status Bar
+  /*********************************************************
+   * STATUS BAR
+   *********************************************************/
   function showStatus(msg) {
     statusBar.textContent = "Status: " + msg;
     console.log(msg);
   }
 
-  // Load stored API key & min sentence length
+  /*********************************************************
+   * LOAD/SAVE SETTINGS
+   *********************************************************/
+  // API key
   if (localStorage.getItem('googleTtsApiKey')) {
     apiKeyInput.value = localStorage.getItem('googleTtsApiKey');
   }
@@ -404,6 +421,7 @@
     localStorage.setItem('googleTtsApiKey', apiKeyInput.value);
     showStatus("API Key updated.");
   });
+  // Min sentence length
   if (localStorage.getItem('minSentenceLength')) {
     minSentenceLengthInput.value = localStorage.getItem('minSentenceLength');
   } else {
@@ -413,8 +431,44 @@
     localStorage.setItem('minSentenceLength', minSentenceLengthInput.value);
     showStatus("Min Sentence Length updated to " + minSentenceLengthInput.value);
   });
+  // Selected voice
+  voiceSelect.addEventListener('change', () => {
+    localStorage.setItem("selectedVoice", voiceSelect.value);
+  });
 
-  // Manual Mode: Process & Clear
+  /*********************************************************
+   * MODE SELECTOR
+   *********************************************************/
+  document.querySelectorAll('input[name="inputMode"]').forEach(radio => {
+    radio.addEventListener('change', handleModeChange);
+  });
+  function handleModeChange() {
+    textContainer.innerHTML = "";
+    globalSentences = [];
+    audioCache = {};
+    currentSentenceIndex = -1;
+    playBtn.disabled = true;
+    pauseBtn.disabled = true;
+    stopBtn.disabled = true;
+    fileInput.value = "";
+
+    const mode = document.querySelector('input[name="inputMode"]:checked').value;
+    if (mode === "manual") {
+      textContainer.setAttribute("contenteditable", "true");
+      processTextBtn.style.display = "inline-block";
+      clearTextBtn.style.display = "inline-block";
+      document.getElementById('uploadSection').style.display = "none";
+    } else {
+      textContainer.setAttribute("contenteditable", "false");
+      processTextBtn.style.display = "none";
+      clearTextBtn.style.display = "none";
+      document.getElementById('uploadSection').style.display = "flex";
+    }
+  }
+
+  /*********************************************************
+   * MANUAL MODE
+   *********************************************************/
   processTextBtn.addEventListener('click', () => {
     processText(textContainer.innerText);
     textContainer.setAttribute("contenteditable", "false");
@@ -431,9 +485,11 @@
     showStatus("Text cleared. Please enter new text.");
   });
 
-  // File Upload Mode
+  /*********************************************************
+   * FILE UPLOAD MODE
+   *********************************************************/
   chooseFileBtn.addEventListener('click', () => {
-    fileInput.click(); // Trigger the hidden file input
+    fileInput.click();
   });
   fileInput.addEventListener('change', e => {
     const file = e.target.files[0];
@@ -447,7 +503,9 @@
     reader.readAsText(file);
   });
 
-  // Combine short sentences
+  /*********************************************************
+   * PROCESS TEXT
+   *********************************************************/
   function combineSentences(sentences) {
     const minLen = parseInt(minSentenceLengthInput.value) || DEFAULT_MIN_SENTENCE_LENGTH;
     let combined = [];
@@ -465,27 +523,19 @@
     return combined;
   }
 
-  // Process text: keep blank paragraphs, then split into sentences
   function processText(text) {
-    // Split paragraphs by blank lines (handles CRLF and LF)
     const paragraphs = text.split(/\r?\n\s*\r?\n/);
     globalSentences = [];
     textContainer.innerHTML = "";
-
-    // Regex to avoid splitting on abbreviations
     const sentenceSplitRegex = /(?<!\b(?:Dr\.|Mr\.|Mrs\.|Ms\.|Prof\.|Sr\.|Jr\.|b\.))(?<=[.?!])\s+(?=[A-Z])/g;
 
     paragraphs.forEach((para, pIndex) => {
       const pDiv = document.createElement('div');
-      pDiv.classList.add('paragraph');
-
       if (para.trim() === "") {
-        // Blank paragraph => line break
         pDiv.innerHTML = "<br>";
       } else {
-        let rawSentences = para.split(sentenceSplitRegex);
-        let finalSentences = combineSentences(rawSentences);
-
+        let raw = para.split(sentenceSplitRegex);
+        let finalSentences = combineSentences(raw);
         finalSentences.forEach(sentence => {
           const span = document.createElement('span');
           const globalIndex = globalSentences.length;
@@ -514,10 +564,13 @@
     audioCache = {};
   }
 
-  // TTS: wrap in SSML or plain text if "Chirp"
+  /*********************************************************
+   * TTS & PLAYBACK
+   *********************************************************/
   function wrapInSSML(text) {
     return `<speak>${text}</speak>`;
   }
+
   async function callTTS(text) {
     const apiKey = apiKeyInput.value.trim();
     if (!apiKey) {
@@ -528,8 +581,8 @@
     const voiceName = selectedOption.value;
     const languageCode = selectedOption.dataset.language || "en-US";
     const url = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`;
-    const inputData = voiceName.includes("Chirp") ? { text } : { ssml: wrapInSSML(text) };
 
+    const inputData = voiceName.includes("Chirp") ? { text } : { ssml: wrapInSSML(text) };
     const data = {
       input: inputData,
       voice: { languageCode, name: voiceName },
@@ -550,7 +603,6 @@
     return result.audioContent;
   }
 
-  // Convert base64 to Blob URL
   function base64ToBlobURL(base64, mime) {
     const byteCharacters = atob(base64);
     const byteNumbers = Array.from(byteCharacters, c => c.charCodeAt(0));
@@ -559,7 +611,6 @@
     return URL.createObjectURL(blob);
   }
 
-  // Playback
   async function playSentence(index) {
     if (index < 0 || index >= globalSentences.length) return;
     isStopped = false;
@@ -616,6 +667,7 @@
         .catch(err => showStatus(`Prefetch error for sentence ${nextIndex + 1}: ${err.message}`));
     }
   }
+
   function highlightSentence(index) {
     clearHighlight();
     const span = document.getElementById("sentence_" + index);
@@ -624,9 +676,11 @@
       span.parentElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }
+
   function clearHighlight() {
     document.querySelectorAll('.sentenceSpan').forEach(s => s.classList.remove('highlight'));
   }
+
   function stopPlayback() {
     isStopped = true;
     isPaused = false;
@@ -638,6 +692,7 @@
     playBtn.disabled = false;
     clearHighlight();
   }
+
   function pausePlayback() {
     if (!isStopped && !isPaused) {
       audioPlayer.pause();
@@ -647,10 +702,10 @@
       pauseBtn.disabled = true;
     }
   }
+
   function startPlayback() {
     const mode = document.querySelector('input[name="inputMode"]:checked').value;
     if (mode === "manual") {
-      // Reprocess text to apply new voice changes
       processText(textContainer.innerText);
     }
     if (isPaused) {
@@ -661,16 +716,21 @@
       pauseBtn.disabled = false;
       stopBtn.disabled = false;
     } else {
-      if (currentSentenceIndex < 0) currentSentenceIndex = 0;
+      if (currentSentenceIndex < 0) {
+        currentSentenceIndex = 0;
+      }
       showStatus(`Starting playback from sentence ${currentSentenceIndex + 1}.`);
       playSentence(currentSentenceIndex);
     }
   }
+
   playBtn.addEventListener('click', startPlayback);
   pauseBtn.addEventListener('click', pausePlayback);
   stopBtn.addEventListener('click', stopPlayback);
 
-  // Voice Dropdown
+  /*********************************************************
+   * VOICE DROPDOWN
+   *********************************************************/
   function populateVoiceDropdown(voices) {
     voiceSelect.innerHTML = "";
     voices.sort((a, b) => {
@@ -688,6 +748,10 @@
       opt.textContent = friendlyName;
       voiceSelect.appendChild(opt);
     });
+    const savedVoice = localStorage.getItem("selectedVoice");
+    if (savedVoice) {
+      voiceSelect.value = savedVoice;
+    }
   }
   function createFriendlyVoiceLabel(voice) {
     const rawName = voice.name;
@@ -697,6 +761,7 @@
     cleaned = cleaned.replace(/-/g, " ");
     return `${cleaned} (${gender.toLowerCase()}) - ${language}`;
   }
+
   async function updateVoiceDropdown(force = false) {
     const apiKey = apiKeyInput.value.trim();
     if (!apiKey) {
@@ -729,8 +794,10 @@
     }
   }
 
-  document.getElementById('refreshVoicesBtn').addEventListener('click', () => { updateVoiceDropdown(true); });
-  
+  document.getElementById('refreshVoicesBtn').addEventListener('click', () => {
+    updateVoiceDropdown(true);
+  });
+
   // Initialize
   updateVoiceDropdown();
 </script>
