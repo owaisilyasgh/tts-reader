@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <!-- Prevent automatic translation -->
   <meta name="google" content="notranslate">
-  <!-- Ensure the page adapts to device width -->
+  <!-- Ensure proper scaling on mobile devices -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Language" content="en">
   <title>Sentence-by-Sentence TTS Reader</title>
@@ -13,23 +13,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
   <style>
     /* GLOBAL RESETS & FONT */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-    html, body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
     body {
       font-family: 'Open Sans', sans-serif;
       background-color: #f2f2f2;
       color: #333;
     }
-
-    /* MAIN CONTAINER */
+    /* MAIN CONTAINER: no outer scrollbar */
     .container {
       display: flex;
       flex-direction: column;
@@ -37,27 +28,27 @@
       max-width: 900px;
       min-height: 100vh;
       margin: 0 auto;
-      padding: 12px;  /* smaller padding to reduce whitespace */
+      padding: 16px;
       background: #fff;
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      overflow: visible;
+      overflow: hidden;
     }
-
     h1 {
-      margin-bottom: 4px;
-      font-size: 1.4rem;
+      margin-bottom: 8px;
+      font-size: 1.5rem;
       text-align: center;
       font-weight: 600;
       color: #333;
     }
-
     /* TOP BAR */
     #topBar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 4px;
+      margin-bottom: 8px;
+      flex: 0 0 auto;
+      flex-wrap: nowrap; /* Force one row */
     }
     #voiceSelect {
       padding: 0.4rem;
@@ -77,109 +68,70 @@
       min-height: 40px;
       margin-left: 4px;
     }
-    #refreshVoicesBtn:hover {
-      background-color: #0056b3;
-    }
+    #refreshVoicesBtn:hover { background-color: #0056b3; }
     #advancedToggle {
       background: none;
       border: none;
-      font-size: 1.4rem;
+      font-size: 1.8rem; /* Reduced gear icon size on mobile */
       cursor: pointer;
       color: #555;
       padding: 0.4rem;
       min-height: 40px;
     }
-    #advancedToggle:hover {
-      color: #000;
-    }
+    #advancedToggle:hover { color: #000; }
 
-    /* ADVANCED SETTINGS (COLLAPSIBLE) */
-    #advancedSettings {
-      max-height: 0px;
-      overflow: hidden;
-      transition: max-height 0.3s ease;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 4px;
-    }
-    #advancedSettings label {
-      font-weight: 600;
-    }
-    #advancedSettings input[type="text"],
-    #advancedSettings input[type="number"] {
-      padding: 0.3rem;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 0.95rem;
-      max-width: 200px;
-    }
-
-    /* MODE + ACTIONS in ONE ROW (DESKTOP) */
+    /* MODE SELECTOR & ACTION BUTTONS */
     #modeAndActions {
       display: flex;
-      align-items: center;
+      flex-wrap: wrap;
       justify-content: space-between;
-      margin-bottom: 4px;
-      gap: 8px;
-      flex-wrap: wrap; /* if there's not enough space, wrap to next line */
-    }
-
-    /* Mode radios */
-    #modeSelector {
-      display: flex;
       align-items: center;
+      margin-bottom: 8px;
       gap: 8px;
     }
-    #modeSelector label {
-      font-size: 0.9rem;
-      cursor: pointer;
+    #modeSelector { display: flex; gap: 8px; align-items: center; }
+    #modeSelector label { font-size: 1rem; cursor: pointer; }
+    #manualControls, #uploadSection {
       display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    /* Manual & Upload sections share the row */
-    #manualControls,
-    #uploadSection {
-      display: flex;
-      align-items: center;
       gap: 8px;
+      align-items: center;
     }
-    #processTextBtn,
-    #clearTextBtn,
-    #chooseFileBtn {
+    #processTextBtn, #clearTextBtn, #chooseFileBtn {
       padding: 0.4rem 0.8rem;
       background-color: #28a745;
       border: none;
       color: #fff;
       border-radius: 4px;
       cursor: pointer;
-      font-size: 0.9rem;
+      font-size: 1rem;
       min-height: 40px;
     }
-    #processTextBtn:hover,
-    #clearTextBtn:hover,
-    #chooseFileBtn:hover {
+    #processTextBtn:hover, #clearTextBtn:hover, #chooseFileBtn:hover {
       background-color: #218838;
     }
-    #fileInput {
-      display: none;
+    #fileInput { display: none; }
+
+    /* ADVANCED SETTINGS (collapsible) */
+    #advancedSettings {
+      max-height: 0px;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+      gap: 8px;
     }
 
     /* TEXT CONTAINER */
     #textContainer {
       border: 1px solid #ccc;
-      padding: 8px;
+      padding: 10px;
       border-radius: 4px;
       background-color: #fafafa;
-      margin-bottom: 4px;
+      margin-bottom: 8px;
       white-space: pre-wrap;
       flex: 1 1 auto;
       overflow-y: auto;
       user-select: text;
       outline: 2px dashed #aaa;
-      font-size: 1rem;  /* default text size on desktop */
+      font-size: 1rem;
       line-height: 1.4;
     }
     .sentenceSpan {
@@ -201,10 +153,10 @@
       left: 0;
       right: 0;
       background: #fff;
-      padding: 4px;
+      padding: 8px;
       border-top: 1px solid #ccc;
       display: flex;
-      gap: 4px;
+      gap: 8px;
       z-index: 10;
     }
     #controls button {
@@ -214,91 +166,43 @@
       color: #fff;
       border-radius: 4px;
       cursor: pointer;
-      font-size: 0.9rem;
+      font-size: 1rem;
       min-height: 40px;
-      flex: 1; /* fill row if needed */
+      flex: 1;
     }
-    #controls button:hover {
-      background-color: #0056b3;
-    }
-    #controls button:disabled {
-      background-color: #ccc;
-      cursor: not-allowed;
-    }
+    #controls button:hover { background-color: #0056b3; }
+    #controls button:disabled { background-color: #ccc; cursor: not-allowed; }
 
     /* STATUS BAR */
     #statusBar {
       border: 1px solid #ccc;
-      padding: 6px;
+      padding: 8px;
       background-color: #f9f9f9;
       border-radius: 4px;
       text-align: center;
-      font-size: 0.9rem;
+      font-size: 1rem;
       color: #555;
-      margin-top: 4px;
+      flex: 0 0 auto;
     }
 
-    /* MOBILE FIRST ADJUSTMENTS */
+    /* MOBILE ADJUSTMENTS */
     @media (max-width: 600px) {
-      .container {
-        padding: 8px;
-        border-radius: 0;
-      }
-      h1 {
-        font-size: 1.2rem;
-        margin-bottom: 4px;
-      }
-      #topBar {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 4px;
-      }
-      #voiceSelect, #refreshVoicesBtn {
-        width: 100%;
-        min-height: 44px;
-        font-size: 1rem;
-      }
-      #advancedToggle {
-        font-size: 1.8rem;
-        align-self: flex-end;
-      }
-      #modeAndActions {
-        flex-direction: column;
-        gap: 4px;
-      }
-      #modeSelector {
-        width: 100%;
-        gap: 4px;
-      }
-      #manualControls,
-      #uploadSection {
-        width: 100%;
-        gap: 4px;
-        flex-wrap: wrap;
-      }
-      #processTextBtn,
-      #clearTextBtn,
-      #chooseFileBtn {
-        width: 100%;
-        min-height: 44px;
-        font-size: 1rem;
-      }
-      /* Increase text container font size significantly */
+      .container { padding: 8px; border-radius: 0; }
+      h1 { font-size: 1.2rem; margin-bottom: 4px; }
+      #topBar { flex-direction: row; align-items: center; gap: 4px; }
+      #voiceSelect, #refreshVoicesBtn { width: auto; min-height: 44px; font-size: 1rem; }
+      #advancedToggle { font-size: 1.8rem; }
+      #modeAndActions { flex-direction: column; gap: 4px; }
+      #modeSelector { width: 100%; flex-direction: row; gap: 8px; }
+      #manualControls, #uploadSection { width: 100%; flex-direction: row; gap: 4px; }
+      #processTextBtn, #clearTextBtn, #chooseFileBtn { width: 100%; min-height: 44px; font-size: 1rem; }
       #textContainer {
-        font-size: 1.3rem; /* about double normal if your base is ~14px */
+        font-size: 1.3rem; /* Larger text on mobile */
         line-height: 1.5;
-        margin-bottom: 4px;
-        height: calc(100vh - 360px); /* adjust so sticky controls are visible */
+        height: calc(100vh - 370px);
       }
-      #controls {
-        font-size: 1rem;
-        padding: 8px;
-        gap: 8px;
-      }
-      #controls button {
-        min-height: 44px;
-        font-size: 1rem;
-      }
+      #controls { font-size: 1rem; padding: 8px; gap: 8px; }
+      #controls button { min-height: 44px; font-size: 1rem; }
     }
   </style>
 </head>
@@ -306,7 +210,7 @@
 <div class="container">
   <h1>Sentence-by-Sentence TTS Reader</h1>
 
-  <!-- Top Bar: Voice & Refresh & Gear -->
+  <!-- Top Bar: Voice Select, Refresh, Gear Icon -->
   <div id="topBar">
     <div style="display: flex; align-items: center;">
       <select id="voiceSelect"></select>
@@ -315,7 +219,7 @@
     <button id="advancedToggle" title="Advanced Settings">&#9881;</button>
   </div>
 
-  <!-- Collapsible Advanced Settings -->
+  <!-- Advanced Settings Panel (collapsible) -->
   <div id="advancedSettings">
     <label for="apiKey">Google TTS API Key:</label>
     <input type="text" id="apiKey" placeholder="Enter your API Key">
@@ -323,21 +227,19 @@
     <input type="number" id="minSentenceLength" value="150" min="0">
   </div>
 
-  <!-- Combined row for mode & action buttons on desktop -->
+  <!-- Mode & Actions Row -->
   <div id="modeAndActions">
     <!-- Mode Selector -->
     <div id="modeSelector">
       <label><input type="radio" name="inputMode" value="manual" checked> Manual Entry</label>
       <label><input type="radio" name="inputMode" value="upload"> File Upload</label>
     </div>
-
-    <!-- Manual Controls (hidden in upload mode) -->
+    <!-- Manual Controls -->
     <div id="manualControls">
       <button id="processTextBtn">Process Text</button>
       <button id="clearTextBtn">Clear Text</button>
     </div>
-
-    <!-- Upload Section (hidden in manual mode) -->
+    <!-- File Upload Section -->
     <div id="uploadSection">
       <input type="file" id="fileInput" accept=".txt">
       <button id="chooseFileBtn">Choose File</button>
@@ -347,7 +249,7 @@
   <!-- Text Container -->
   <div id="textContainer" contenteditable="true"></div>
 
-  <!-- Sticky Playback Controls at bottom -->
+  <!-- Sticky Playback Controls -->
   <div id="controls">
     <button id="playBtn" disabled>Play</button>
     <button id="pauseBtn" disabled>Pause</button>
@@ -394,13 +296,11 @@
   /*********************************************************
    * COLLAPSIBLE ADVANCED SETTINGS
    *********************************************************/
-  let advancedVisible = false;
   advancedToggle.addEventListener('click', () => {
-    advancedVisible = !advancedVisible;
-    if (advancedVisible) {
-      advancedSettings.style.maxHeight = "400px";
-    } else {
+    if (advancedSettings.style.maxHeight === "400px") {
       advancedSettings.style.maxHeight = "0px";
+    } else {
+      advancedSettings.style.maxHeight = "400px";
     }
   });
 
@@ -415,7 +315,6 @@
   /*********************************************************
    * LOAD/SAVE SETTINGS
    *********************************************************/
-  // API key
   if (localStorage.getItem('googleTtsApiKey')) {
     apiKeyInput.value = localStorage.getItem('googleTtsApiKey');
   }
@@ -423,7 +322,6 @@
     localStorage.setItem('googleTtsApiKey', apiKeyInput.value);
     showStatus("API Key updated.");
   });
-  // Min sentence length
   if (localStorage.getItem('minSentenceLength')) {
     minSentenceLengthInput.value = localStorage.getItem('minSentenceLength');
   } else {
@@ -433,13 +331,12 @@
     localStorage.setItem('minSentenceLength', minSentenceLengthInput.value);
     showStatus("Min Sentence Length updated to " + minSentenceLengthInput.value);
   });
-  // Selected voice
   voiceSelect.addEventListener('change', () => {
     localStorage.setItem("selectedVoice", voiceSelect.value);
   });
 
   /*********************************************************
-   * MODE SELECTOR
+   * MODE SELECTOR & ACTIONS
    *********************************************************/
   document.querySelectorAll('input[name="inputMode"]').forEach(radio => {
     radio.addEventListener('change', handleModeChange);
@@ -453,7 +350,6 @@
     pauseBtn.disabled = true;
     stopBtn.disabled = true;
     fileInput.value = "";
-
     const mode = document.querySelector('input[name="inputMode"]:checked').value;
     if (mode === "manual") {
       textContainer.setAttribute("contenteditable", "true");
@@ -461,7 +357,7 @@
       clearTextBtn.style.display = "inline-block";
       document.getElementById('uploadSection').style.display = "none";
     } else {
-      textContainer.setAttribute("contenteditable", "false");
+      textContainer.setAttribute("contenteditable", "true"); // keep it editable for formatting
       processTextBtn.style.display = "none";
       clearTextBtn.style.display = "none";
       document.getElementById('uploadSection').style.display = "flex";
@@ -490,9 +386,7 @@
   /*********************************************************
    * FILE UPLOAD MODE
    *********************************************************/
-  chooseFileBtn.addEventListener('click', () => {
-    fileInput.click();
-  });
+  chooseFileBtn.addEventListener('click', () => { fileInput.click(); });
   fileInput.addEventListener('change', e => {
     const file = e.target.files[0];
     if (!file) return;
@@ -506,7 +400,7 @@
   });
 
   /*********************************************************
-   * PROCESS TEXT
+   * TEXT PROCESSING
    *********************************************************/
   function combineSentences(sentences) {
     const minLen = parseInt(minSentenceLengthInput.value) || DEFAULT_MIN_SENTENCE_LENGTH;
@@ -526,18 +420,19 @@
   }
 
   function processText(text) {
-    const paragraphs = text.split(/\r?\n\s*\r?\n/);
+    // Split paragraphs, preserving blank ones
+    const paraArray = text.split(/\r?\n\s*\r?\n/);
     globalSentences = [];
     textContainer.innerHTML = "";
     const sentenceSplitRegex = /(?<!\b(?:Dr\.|Mr\.|Mrs\.|Ms\.|Prof\.|Sr\.|Jr\.|b\.))(?<=[.?!])\s+(?=[A-Z])/g;
-
-    paragraphs.forEach((para, pIndex) => {
+    paraArray.forEach((para, pIndex) => {
       const pDiv = document.createElement('div');
+      pDiv.classList.add('paragraph');
       if (para.trim() === "") {
         pDiv.innerHTML = "<br>";
       } else {
-        let raw = para.split(sentenceSplitRegex);
-        let finalSentences = combineSentences(raw);
+        let rawSentences = para.split(sentenceSplitRegex);
+        let finalSentences = combineSentences(rawSentences);
         finalSentences.forEach(sentence => {
           const span = document.createElement('span');
           const globalIndex = globalSentences.length;
@@ -558,7 +453,6 @@
       }
       textContainer.appendChild(pDiv);
     });
-
     showStatus(`Processed text: ${globalSentences.length} sentences.`);
     playBtn.disabled = (globalSentences.length === 0);
     pauseBtn.disabled = true;
@@ -575,15 +469,11 @@
 
   async function callTTS(text) {
     const apiKey = apiKeyInput.value.trim();
-    if (!apiKey) {
-      alert("Please enter your Google TTS API Key.");
-      return;
-    }
+    if (!apiKey) { alert("Please enter your Google TTS API Key."); return; }
     const selectedOption = voiceSelect.options[voiceSelect.selectedIndex];
     const voiceName = selectedOption.value;
     const languageCode = selectedOption.dataset.language || "en-US";
     const url = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`;
-
     const inputData = voiceName.includes("Chirp") ? { text } : { ssml: wrapInSSML(text) };
     const data = {
       input: inputData,
@@ -591,11 +481,7 @@
       audioConfig: { audioEncoding: "MP3" }
     };
     showStatus(`Sending sentence ${currentSentenceIndex + 1} to TTS API...`);
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
-    });
+    const response = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error("TTS API Error: " + (errorData.error ? errorData.error.message : response.statusText));
@@ -618,7 +504,6 @@
     isStopped = false;
     isPaused = false;
     highlightSentence(index);
-
     if (audioCache[index]) {
       showStatus(`Playing cached audio for sentence ${index + 1}.`);
       audioPlayer.src = audioCache[index];
@@ -635,14 +520,12 @@
         return;
       }
     }
-
     audioPlayer.style.display = "block";
     audioPlayer.play();
     pauseBtn.disabled = false;
     stopBtn.disabled = false;
     playBtn.disabled = true;
     currentSentenceIndex = index;
-
     audioPlayer.onended = () => {
       if (isStopped) return;
       const nextIndex = index + 1;
@@ -657,8 +540,6 @@
         stopBtn.disabled = true;
       }
     };
-
-    // Prefetch next
     const nextIndex = index + 1;
     if (nextIndex < globalSentences.length && !audioCache[nextIndex]) {
       callTTS(globalSentences[nextIndex].sentenceText)
@@ -707,9 +588,7 @@
 
   function startPlayback() {
     const mode = document.querySelector('input[name="inputMode"]:checked').value;
-    if (mode === "manual") {
-      processText(textContainer.innerText);
-    }
+    if (mode === "manual") { processText(textContainer.innerText); }
     if (isPaused) {
       isPaused = false;
       showStatus("Playback resumed.");
@@ -718,9 +597,7 @@
       pauseBtn.disabled = false;
       stopBtn.disabled = false;
     } else {
-      if (currentSentenceIndex < 0) {
-        currentSentenceIndex = 0;
-      }
+      if (currentSentenceIndex < 0) { currentSentenceIndex = 0; }
       showStatus(`Starting playback from sentence ${currentSentenceIndex + 1}.`);
       playSentence(currentSentenceIndex);
     }
@@ -763,13 +640,9 @@
     cleaned = cleaned.replace(/-/g, " ");
     return `${cleaned} (${gender.toLowerCase()}) - ${language}`;
   }
-
   async function updateVoiceDropdown(force = false) {
     const apiKey = apiKeyInput.value.trim();
-    if (!apiKey) {
-      alert("Please enter your API Key to refresh voices.");
-      return;
-    }
+    if (!apiKey) { alert("Please enter your API Key to refresh voices."); return; }
     if (!force) {
       const cachedVoices = localStorage.getItem("cachedVoices");
       if (cachedVoices) {
@@ -795,12 +668,7 @@
       showStatus("Error updating voices: " + error.message);
     }
   }
-
-  document.getElementById('refreshVoicesBtn').addEventListener('click', () => {
-    updateVoiceDropdown(true);
-  });
-
-  // Initialize
+  document.getElementById('refreshVoicesBtn').addEventListener('click', () => { updateVoiceDropdown(true); });
   updateVoiceDropdown();
 </script>
 </body>
