@@ -15,10 +15,11 @@
 </head>
 <body>
 <div class="container">
-  <h1>Orator</h1>
+  <div id="mainContent"> <!-- START New Wrapper -->
+    <h1>Orator</h1>
 
-  <!-- Top Bar: Voice Select, Refresh, Gear Icon -->
-  <div id="topBar">
+    <!-- Top Bar: Voice Select, Refresh, Gear Icon -->
+    <div id="topBar">
     <div style="display: flex; align-items: center;">
       <select id="voiceSelect"></select>
       <button id="refreshVoicesBtn">Refresh Voices</button>
@@ -85,8 +86,9 @@
 
   <!-- Status Bar (will be fixed on mobile) -->
   <div id="statusBar" aria-live="polite">Status: Ready</div>
+  </div> <!-- END New Wrapper (#mainContent) -->
 
-  <!-- Sticky Playback Controls -->
+  <!-- Playback Controls (Now outside mainContent) -->
   <div id="controls">
     <button id="playBtn" disabled>Play</button>
     <button id="pauseBtn" disabled>Pause</button>

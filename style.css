@@ -89,6 +89,17 @@ body {
   overflow: hidden; /* Restore: Prevent container scroll, force internal scroll */
   transition: background-color 0.3s ease;
 }
+
+/* New rule for the main content wrapper */
+#mainContent {
+  flex: 1 1 auto; /* Allow it to grow and shrink */
+  overflow-y: auto; /* Make this the scrolling container */
+  /* Add padding that was previously on .container */
+  padding: 16px;
+  /* Ensure flex context for children if needed, though block layout might be fine */
+  display: block; /* Or flex if needed later */
+}
+
 h1 {
   margin-bottom: 8px;
   font-size: 1.5rem;
@@ -325,11 +336,9 @@ input:checked + .slider:before {
 
 /* TEXT CONTAINER */
 #textContainer {
-  /* Let it grow and shrink, taking available space */
-  flex: 1 1 auto;
-  overflow-y: auto; /* Enable scrolling *within* the container */
+  /* Removed flex: 1 1 auto; */
+  /* Removed overflow-y: auto; - Scrolling handled by #mainContent */
   border: 1px solid var(--border-color);
-  /* Keep padding, but remove the large bottom padding added previously */
   padding: 10px;
   border-radius: 4px;
   background-color: var(--input-bg); /* Use input bg for consistency */
@@ -373,13 +382,12 @@ input:checked + .slider:before {
 
 /* PLAYBACK CONTROLS (at bottom) */
 #controls {
-  /* Removed position: sticky and related properties */
   background: var(--container-bg); /* Match container bg */
-  padding: 8px;
+  padding: 8px; /* Keep padding for internal spacing */
   border-top: 1px solid var(--border-color); /* Use variable */
   display: flex;
   gap: 8px;
-  /* Removed flex-shrink: 0; */
+  flex-shrink: 0; /* Ensure controls don't shrink */
 }
 #controls button {
   padding: 0.4rem 0.8rem;
@@ -403,11 +411,15 @@ input:checked + .slider:before {
 
   /* MOBILE ADJUSTMENTS */
 @media (max-width: 600px) {
+  /* Adjust padding on the new main content area for mobile */
+  #mainContent {
+    padding: 8px;
+  }
   .container {
-    padding: 8px; /* Reset padding for mobile */
-    padding-bottom: 60px; /* Add padding to prevent overlap with fixed controls (approx height) */
+    /* padding: 8px; */ /* Padding now handled by #mainContent */
+    /* padding-bottom: 60px; */ /* Removed bottom padding, no longer needed */
     border-radius: 0;
-    /* height: 100vh; */ /* Height is handled by --app-height now */
+    /* height is handled by --app-height */
     /* Flex properties already set */
   }
   h1 { font-size: 1.2rem; margin-bottom: 4px; }
@@ -438,22 +450,18 @@ input:checked + .slider:before {
      padding: 4px 0; /* More vertical padding on mobile */
    }
   #controls {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    /* Re-apply background and border-top for fixed element */
-    background: var(--container-bg);
-    border-top: 1px solid var(--border-color);
-    /* Ensure padding is applied */
-    padding: 8px;
-    /* Limit width and center if needed */
-    max-width: 600px; /* Optional: constrain width */
-    margin: 0 auto; /* Center if max-width is applied */
-    /* Keep flex properties */
+    /* Remove fixed positioning styles */
+    /* position: fixed; */
+    /* bottom: 0; */
+    /* left: 0; */
+    /* right: 0; */
+    /* max-width: 600px; */
+    /* margin: 0 auto; */
+    /* z-index: 10; */
+    /* Keep other mobile styles */
     font-size: 1rem;
+    padding: 8px; /* Ensure padding is still applied */
     gap: 8px;
-    z-index: 10; /* Ensure it's above other content */
    }
   #controls button { min-height: 44px; font-size: 1rem; }
   /* Status Bar: Keep in flow, above controls */
