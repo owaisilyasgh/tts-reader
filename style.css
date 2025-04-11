@@ -86,7 +86,7 @@ body {
   background: var(--container-bg);
   border-radius: 8px;
   box-shadow: 0 2px 8px var(--container-shadow);
-  overflow: hidden; /* Keep this to prevent body scrollbars */
+  /* overflow: hidden; */ /* Removed to allow container scroll if needed, though textContainer should handle most scrolling */
   transition: background-color 0.3s ease;
 }
 h1 {
