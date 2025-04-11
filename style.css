@@ -371,18 +371,15 @@ input:checked + .slider:before {
   /* aria-live="polite" is set in HTML */
 }
 
-/* STICKY PLAYBACK CONTROLS */
+/* PLAYBACK CONTROLS (at bottom) */
 #controls {
-  position: sticky;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  /* Removed position: sticky and related properties */
   background: var(--container-bg); /* Match container bg */
   padding: 8px;
   border-top: 1px solid var(--border-color); /* Use variable */
   display: flex;
   gap: 8px;
-  z-index: 10;
+  flex-shrink: 0; /* Prevent controls from shrinking */
 }
 #controls button {
   padding: 0.4rem 0.8rem;
@@ -446,10 +443,10 @@ input:checked + .slider:before {
     position: static; /* Remove fixed positioning */
     margin: 0 0 8px 0; /* Adjust margin */
     z-index: auto;
-    order: 5; /* Place it visually before controls using flex order */
+    /* Removed order: 5; - rely on source order */
   }
-   /* Adjust order of elements within container for mobile */
-   .container > * { order: 0; } /* Default order */
-   #textContainer { order: 4; }
-   #controls { order: 6; }
+   /* Removed explicit ordering - rely on source order */
+   /* .container > * { order: 0; } */
+   /* #textContainer { order: 4; } */
+   /* #controls { order: 6; } */
 }
