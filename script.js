@@ -667,8 +667,10 @@ async function updateVoiceDropdown(force = false) {
  *********************************************************/
 function updateAppHeight() {
   const doc = document.documentElement;
-  doc.style.setProperty('--app-height', `${window.innerHeight}px`);
-  console.log(`App height set to: ${window.innerHeight}px`);
+  // Use visualViewport height if available, otherwise fallback to innerHeight
+  const height = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+  doc.style.setProperty('--app-height', `${height}px`);
+  // console.log(`App height set to: ${height}px`); // Optional: keep for debugging
 }
 
 // Initial setup
@@ -679,9 +681,15 @@ document.addEventListener('DOMContentLoaded', () => {
     handleModeChange(); // Set initial mode display
 });
 
-// Update height on resize and orientation change
-window.addEventListener('resize', updateAppHeight);
-window.addEventListener('orientationchange', updateAppHeight);
+// Update height using Visual Viewport API if available
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', updateAppHeight);
+} else {
+  // Fallback for older browsers
+  window.addEventListener('resize', updateAppHeight);
+  window.addEventListener('orientationchange', updateAppHeight);
+}
+
 
 // Event Listeners for Refresh Voices (already added earlier, this is just ensuring it's clear)
 document.getElementById('refreshVoicesBtn').addEventListener('click', () => updateVoiceDropdown(true));
