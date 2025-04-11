@@ -12,7 +12,8 @@ const DEFAULT_MIN_SENTENCE_LENGTH = 150;
  * DOM ELEMENTS
  *********************************************************/
 const advancedToggle = document.getElementById('advancedToggle');
-const advancedSettings = document.getElementById('advancedSettings');
+// Note: advancedSettings div is no longer used for accordion, but might be referenced elsewhere if not cleaned up fully.
+// const advancedSettings = document.getElementById('advancedSettings');
 const apiKeyInput = document.getElementById('apiKey');
 const minSentenceLengthInput = document.getElementById('minSentenceLength');
 const textContainer = document.getElementById('textContainer');
@@ -135,7 +136,7 @@ function handleModeChange() {
   playBtn.disabled = true;
   pauseBtn.disabled = true;
   stopBtn.disabled = true;
-  fileInput.value = "";
+  fileInput.value = ""; // Reset file input when mode changes
   const mode = document.querySelector('input[name="inputMode"]:checked').value;
   if (mode === "manual") {
     textContainer.setAttribute("contenteditable", "true");
@@ -176,7 +177,12 @@ clearTextBtn.addEventListener('click', () => {
 /*********************************************************
  * FILE UPLOAD MODE
  *********************************************************/
-chooseFileBtn.addEventListener('click', () => { fileInput.click(); });
+chooseFileBtn.addEventListener('click', (event) => {
+  // Reset the input value *before* triggering the click to allow re-selecting the same file
+  // This is the fix for the double-dialog issue.
+  fileInput.value = "";
+  fileInput.click();
+});
 fileInput.addEventListener('change', e => {
   const file = e.target.files[0];
   if (!file) return;
@@ -186,7 +192,7 @@ fileInput.addEventListener('change', e => {
     processText(evt.target.result);
     // Ensure non-editable in upload mode
     textContainer.setAttribute("contenteditable", "false");
-    fileInput.value = "";
+    // DO NOT reset fileInput.value here - it's reset before the click now.
   };
   reader.readAsText(file);
 });
@@ -272,7 +278,6 @@ async function callTTS(text, sentenceIndex) {
   const data = { input: inputData, voice: { languageCode, name: voiceName }, audioConfig: { audioEncoding: "MP3" } };
 
   isFetchingTTS = true;
-  // Optional: Add visual indicator like disabling play/pause/stop or showing spinner
   showStatus(`Fetching audio for sentence ${sentenceIndex + 1}...`);
 
   try {
@@ -281,18 +286,16 @@ async function callTTS(text, sentenceIndex) {
       const errorData = await response.json();
       const errorMessage = "TTS API Error: " + (errorData.error ? errorData.error.message : response.statusText);
       showStatus(errorMessage, true);
-      throw new Error(errorMessage); // Throw to be caught by caller
+      throw new Error(errorMessage);
     }
     const result = await response.json();
     showStatus(`Received audio for sentence ${sentenceIndex + 1}.`);
     return result.audioContent;
   } catch (error) {
-      // Catch network errors or errors thrown above
       showStatus(`Failed to fetch TTS for sentence ${sentenceIndex + 1}: ${error.message}`, true);
-      throw error; // Re-throw to be caught by playSentence
+      throw error;
   } finally {
       isFetchingTTS = false;
-      // Optional: Remove visual indicator
   }
 }
 
@@ -311,49 +314,40 @@ async function playSentence(index) {
   highlightSentence(index);
   if (audioCache[index]) {
     showStatus(`Playing cached audio for sentence ${index + 1}.`);
-      showStatus(`Playing cached audio for sentence ${index + 1}.`);
       audioPlayer.src = audioCache[index];
-      // Ensure playback controls are updated correctly even when playing from cache
       pauseBtn.disabled = false;
       stopBtn.disabled = false;
       playBtn.disabled = true;
   } else {
     try {
-      // Pass the index to callTTS for better status messages
       const audioContent = await callTTS(globalSentences[index].sentenceText, index);
-      if (!audioContent) return; // Exit if TTS failed (error already shown)
+      if (!audioContent) return;
 
       const audioURL = base64ToBlobURL(audioContent, "audio/mp3");
       audioCache[index] = audioURL;
       showStatus(`Cached audio for sentence ${index + 1}.`);
-      audioPlayer.src = audioURL; // Set source only after successful fetch & cache
+      audioPlayer.src = audioURL;
     } catch (error) {
-      // Error already shown by callTTS or fetch itself
-      // Reset controls if TTS fails for the current sentence
       playBtn.disabled = false;
       pauseBtn.disabled = true;
       stopBtn.disabled = true;
-      clearHighlight(); // Clear highlight as playback cannot proceed
-      return; // Stop playback sequence
+      clearHighlight();
+      return;
     }
   }
 
-  // Play the audio (either cached or newly fetched)
-  // audioPlayer.style.display = "block"; // Not needed if controls handle visibility
   audioPlayer.play().catch(e => {
       showStatus(`Audio playback error: ${e.message}`, true);
-      // Reset controls on playback error
       playBtn.disabled = false;
       pauseBtn.disabled = true;
       stopBtn.disabled = true;
       clearHighlight();
   });
 
-  // Update controls *after* attempting to play
   pauseBtn.disabled = false;
   stopBtn.disabled = false;
   playBtn.disabled = true;
-  currentSentenceIndex = index; // Update index only when playback starts
+  currentSentenceIndex = index;
 
   audioPlayer.onended = () => {
     if (isStopped) return;
@@ -371,12 +365,14 @@ async function playSentence(index) {
   };
   const nextIndex = index + 1;
   if (nextIndex < globalSentences.length && !audioCache[nextIndex]) {
-    callTTS(globalSentences[nextIndex].sentenceText)
+    callTTS(globalSentences[nextIndex].sentenceText, nextIndex) // Pass correct index
       .then(audioContent => {
-        audioCache[nextIndex] = base64ToBlobURL(audioContent, "audio/mp3");
-        showStatus(`Prefetched and cached sentence ${nextIndex + 1}.`);
+        if (audioContent) { // Check if TTS succeeded before caching
+          audioCache[nextIndex] = base64ToBlobURL(audioContent, "audio/mp3");
+          showStatus(`Prefetched and cached sentence ${nextIndex + 1}.`);
+        }
       })
-      .catch(err => showStatus(`Prefetch error for sentence ${nextIndex + 1}: ${err.message}`, true)); // Mark prefetch errors
+      .catch(err => showStatus(`Prefetch error for sentence ${nextIndex + 1}: ${err.message}`, true));
   }
 }
 
@@ -417,7 +413,12 @@ function pausePlayback() {
 
 function startPlayback() {
   const mode = document.querySelector('input[name="inputMode"]:checked').value;
-  if (mode === "manual") { processText(textContainer.innerText); }
+  // Re-process text only if in manual mode and text might have changed
+  if (mode === "manual" && textContainer.getAttribute('contenteditable') === 'true') {
+     processText(textContainer.innerText);
+     textContainer.setAttribute("contenteditable", "false");
+  }
+
   if (isPaused) {
     isPaused = false;
     showStatus("Playback resumed.");
@@ -426,6 +427,10 @@ function startPlayback() {
     pauseBtn.disabled = false;
     stopBtn.disabled = false;
   } else {
+    if (globalSentences.length === 0) {
+        showStatus("No text processed to play.", true);
+        return;
+    }
     if (currentSentenceIndex < 0) { currentSentenceIndex = 0; }
     showStatus(`Starting playback from sentence ${currentSentenceIndex + 1}.`);
     playSentence(currentSentenceIndex);
@@ -477,7 +482,6 @@ async function updateVoiceDropdown(force = false) {
     return;
   }
 
-  // Indicate loading
   refreshBtn.disabled = true;
   refreshBtn.textContent = "Refreshing...";
   showStatus("Fetching voices...");
@@ -488,12 +492,11 @@ async function updateVoiceDropdown(force = false) {
       try {
         const voices = JSON.parse(cachedVoices);
         populateVoiceDropdown(voices);
-        showStatus("Loaded voices from cache."); // Keep only one instance
-        refreshBtn.disabled = false; // Re-enable button
+        showStatus("Loaded voices from cache.");
+        refreshBtn.disabled = false;
         refreshBtn.textContent = originalBtnText;
         return;
       } catch(e) {
-        // Ignore cache parsing errors, proceed to fetch
         console.warn("Could not parse cached voices:", e);
       }
     }
@@ -503,19 +506,17 @@ async function updateVoiceDropdown(force = false) {
   try {
     const response = await fetch(url);
     if (!response.ok) {
-        const errorText = await response.text(); // Try to get error text
+        const errorText = await response.text();
         throw new Error(`Error fetching voices: ${response.statusText} - ${errorText}`);
     }
     const data = await response.json();
-    // Filter for English voices, could be made configurable
     const voices = data.voices.filter(v => v.languageCodes.some(lc => lc.toLowerCase().startsWith("en")));
     populateVoiceDropdown(voices);
-    localStorage.setItem("cachedVoices", JSON.stringify(voices)); // Cache successful fetch
+    localStorage.setItem("cachedVoices", JSON.stringify(voices));
     showStatus("Voice dropdown updated from API and cached.");
   } catch (error) {
     showStatus(`Error updating voices: ${error.message}`, true);
   } finally {
-    // Always re-enable button and restore text
     refreshBtn.disabled = false;
     refreshBtn.textContent = originalBtnText;
   }
@@ -524,20 +525,19 @@ async function updateVoiceDropdown(force = false) {
 // Initial setup
 document.addEventListener('DOMContentLoaded', () => {
     loadSettings(); // Load all settings
-    updateVoiceDropdown(); // Load voices (needs API key potentially loaded by loadSettings)
+    updateVoiceDropdown(); // Load voices
     handleModeChange(); // Set initial mode display
 });
 
-// Event Listeners (Settings listeners are defined in LOAD/SAVE section)
+// Event Listeners
 document.querySelectorAll('input[name="inputMode"]').forEach(radio => { radio.addEventListener('change', handleModeChange); });
 processTextBtn.addEventListener('click', () => {
   processText(textContainer.innerText);
-  textContainer.setAttribute("contenteditable", "false"); // Keep non-editable after processing
+  textContainer.setAttribute("contenteditable", "false");
 });
 clearTextBtn.addEventListener('click', () => {
-  // Add confirmation if text area is not empty
   if (textContainer.innerText.trim() !== "" && !confirm("Are you sure you want to clear the current text?")) {
-    return; // User cancelled
+    return;
   }
   textContainer.innerHTML = "";
   globalSentences = [];
@@ -549,21 +549,11 @@ clearTextBtn.addEventListener('click', () => {
   textContainer.setAttribute("contenteditable", "true");
   showStatus("Text cleared. Please enter new text.");
 });
-chooseFileBtn.addEventListener('click', () => { fileInput.click(); });
-fileInput.addEventListener('change', e => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = evt => {
-    textContainer.innerText = evt.target.result;
-    processText(evt.target.result);
-    // Ensure non-editable in upload mode
-    textContainer.setAttribute("contenteditable", "false");
-    fileInput.value = "";
-  };
-  reader.readAsText(file);
-});
+// chooseFileBtn listener defined above
+// fileInput listener defined above
 playBtn.addEventListener('click', startPlayback);
 pauseBtn.addEventListener('click', pausePlayback);
 stopBtn.addEventListener('click', stopPlayback);
 document.getElementById('refreshVoicesBtn').addEventListener('click', () => updateVoiceDropdown(true));
+// Settings modal listeners defined above
+// Settings input listeners defined above
