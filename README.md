@@ -30,11 +30,14 @@ A client-side, responsive web application that reads uploaded text files aloud s
     *   Advanced Settings panel hides the API key and minimum sentence length controls by default (accessible via a gear icon).
     *   A status bar shows the latest event (e.g., when a sentence is sent to the API, cached, or when playback stops).
 
-*   **Dynamic Voice Change:**  
+*   **Dynamic Voice Change:**
     If the voice is changed mid-playback, the new voice is applied automatically to the next sentence.
 
-*   **Audio Caching & Prefetching:**  
+*   **Audio Caching & Prefetching:**
     Audio for each sentence is cached to minimize API calls and reduce delays. The next sentence is pre-fetched in the background.
+
+*   **Keep Screen On:**
+    Prevents the screen from turning off while the app is in use. (Requires HTTPS and user permission)
 
 ## Configuration
 

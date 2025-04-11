@@ -32,6 +32,41 @@ const settingsModal = document.getElementById('settingsModal');
 const settingsOverlay = document.getElementById('settingsOverlay');
 const closeSettingsBtn = document.getElementById('closeSettingsBtn');
 const darkModeToggle = document.getElementById('darkModeToggle'); // Added dark mode toggle
+let wakeLock = null;
+const wakeLockToggle = document.getElementById('wakeLockToggle');
+
+/*********************************************************
+ * SETTINGS MODAL HANDLING
+ *********************************************************/
+async function requestWakeLock() {
+  try {
+    wakeLock = await navigator.wakeLock.request('screen');
+    wakeLock.addEventListener('release', () => {
+      console.log('Screen Wake Lock was released');
+    });
+    console.log('Screen Wake Lock is active');
+  } catch (err) {
+    console.error(`${err.name}, ${err.message}`);
+    showStatus(`Failed to acquire wake lock: ${err.message}`, true);
+    wakeLockToggle.checked = false;
+  }
+}
+
+async function releaseWakeLock() {
+  if (wakeLock) {
+    await wakeLock.release();
+    wakeLock = null;
+    console.log('Screen Wake Lock was released');
+  }
+}
+
+wakeLockToggle.addEventListener('change', () => {
+  if (wakeLockToggle.checked) {
+    requestWakeLock();
+  } else {
+    releaseWakeLock();
+  }
+});
 
 /*********************************************************
  * SETTINGS MODAL HANDLING
@@ -103,6 +138,13 @@ function loadSettings() {
   const savedDarkMode = localStorage.getItem('darkMode') === 'true';
   darkModeToggle.checked = savedDarkMode;
   applyDarkMode(savedDarkMode);
+
+  // Wake Lock
+  const savedWakeLock = localStorage.getItem('wakeLock') === 'true';
+  wakeLockToggle.checked = savedWakeLock;
+  if (savedWakeLock) {
+    requestWakeLock();
+  }
 }
 
 // --- Event Listeners for Saving Settings ---
@@ -132,6 +174,17 @@ darkModeToggle.addEventListener('change', () => {
   applyDarkMode(isDarkMode);
   localStorage.setItem('darkMode', isDarkMode);
   showStatus(`Dark mode ${isDarkMode ? 'enabled' : 'disabled'}.`);
+});
+
+wakeLockToggle.addEventListener('change', () => {
+  const isWakeLockEnabled = wakeLockToggle.checked;
+  localStorage.setItem('wakeLock', isWakeLockEnabled);
+  if (isWakeLockEnabled) {
+    requestWakeLock();
+  } else {
+    releaseWakeLock();
+  }
+  showStatus(`Keep screen on ${isWakeLockEnabled ? 'enabled' : 'disabled'}.`);
 });
 
 /*********************************************************
