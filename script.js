@@ -28,9 +28,10 @@ const voiceSelect = document.getElementById('voiceSelect');
 const fileInput = document.getElementById('fileInput');
 const chooseFileBtn = document.getElementById('chooseFileBtn');
 const fontSizeInput = document.getElementById('fontSize');
-const settingsModal = document.getElementById('settingsModal'); // Added modal elements
+const settingsModal = document.getElementById('settingsModal');
 const settingsOverlay = document.getElementById('settingsOverlay');
 const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+const darkModeToggle = document.getElementById('darkModeToggle'); // Added dark mode toggle
 
 /*********************************************************
  * SETTINGS MODAL HANDLING
@@ -96,7 +97,12 @@ function loadSettings() {
     fontSizeInput.value = DEFAULT_FONT_SIZE;
     applyFontSize(DEFAULT_FONT_SIZE); // Apply default font size
   }
-  // Selected Voice (handled in updateVoiceDropdown)
+  // Selected Voice (handled separately)
+
+  // Dark Mode
+  const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+  darkModeToggle.checked = savedDarkMode;
+  applyDarkMode(savedDarkMode);
 }
 
 // --- Event Listeners for Saving Settings ---
@@ -121,6 +127,23 @@ voiceSelect.addEventListener('change', () => {
   localStorage.setItem("selectedVoice", voiceSelect.value);
 });
 
+darkModeToggle.addEventListener('change', () => {
+  const isDarkMode = darkModeToggle.checked;
+  applyDarkMode(isDarkMode);
+  localStorage.setItem('darkMode', isDarkMode);
+  showStatus(`Dark mode ${isDarkMode ? 'enabled' : 'disabled'}.`);
+});
+
+/*********************************************************
+ * DARK MODE HANDLING
+ *********************************************************/
+function applyDarkMode(isDark) {
+  if (isDark) {
+    document.documentElement.classList.add('dark-mode');
+  } else {
+    document.documentElement.classList.remove('dark-mode');
+  }
+}
 
 /*********************************************************
  * MODE SELECTOR & ACTIONS
