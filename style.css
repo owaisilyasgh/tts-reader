@@ -79,7 +79,8 @@ body {
   flex-direction: column;
   width: 100%;
   max-width: 900px;
-  height: 100vh; /* Use 100vh to strictly enforce viewport height */
+  /* Use CSS variable for height, fallback to 100vh */
+  height: var(--app-height, 100vh);
   margin: 0 auto;
   padding: 16px;
   background: var(--container-bg);

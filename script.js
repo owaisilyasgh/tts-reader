@@ -662,12 +662,26 @@ async function updateVoiceDropdown(force = false) {
   }
 }
 
+/*********************************************************
+ * APP HEIGHT HANDLING (for mobile browser UI)
+ *********************************************************/
+function updateAppHeight() {
+  const doc = document.documentElement;
+  doc.style.setProperty('--app-height', `${window.innerHeight}px`);
+  console.log(`App height set to: ${window.innerHeight}px`);
+}
+
 // Initial setup
 document.addEventListener('DOMContentLoaded', () => {
+    updateAppHeight(); // Set initial height
     loadSettings(); // Load all settings
     updateVoiceDropdown(); // Load voices
     handleModeChange(); // Set initial mode display
 });
+
+// Update height on resize and orientation change
+window.addEventListener('resize', updateAppHeight);
+window.addEventListener('orientationchange', updateAppHeight);
 
 // Event Listeners for Refresh Voices (already added earlier, this is just ensuring it's clear)
 document.getElementById('refreshVoicesBtn').addEventListener('click', () => updateVoiceDropdown(true));
