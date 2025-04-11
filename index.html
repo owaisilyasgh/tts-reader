@@ -7,7 +7,7 @@
   <!-- Ensure proper scaling on mobile devices -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Language" content="en">
-  <title>Sentence-by-Sentence TTS Reader</title>
+  <title>Orator</title>
   <!-- Google Font -->
   <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
@@ -15,7 +15,7 @@
 </head>
 <body>
 <div class="container">
-  <h1>Sentence-by-Sentence TTS Reader</h1>
+  <h1>Orator</h1>
 
   <!-- Top Bar: Voice Select, Refresh, Gear Icon -->
   <div id="topBar">
@@ -23,7 +23,7 @@
       <select id="voiceSelect"></select>
       <button id="refreshVoicesBtn">Refresh Voices</button>
     </div>
-    <button id="advancedToggle" title="Advanced Settings">&#9881;</button> <!-- Keep this button to trigger the modal -->
+    <button id="advancedToggle" title="Advanced Settings" aria-label="Open Advanced Settings">&#9881;</button> <!-- Keep this button to trigger the modal -->
   </div>
 
   <!-- Settings Modal -->
@@ -52,6 +52,13 @@
           <span class="slider round"></span>
         </label>
       </div>
+      <label for="highlightThemeSelect">Dark Mode Highlight:</label>
+      <select id="highlightThemeSelect">
+        <option value="default">Default (Yellow Border)</option>
+        <option value="grey">Grey</option>
+        <option value="blue">Blue</option>
+        <option value="yellow">Yellow</option>
+      </select>
     </div>
   </div>
 
@@ -64,7 +71,6 @@
     </div>
     <!-- Manual Controls -->
     <div id="manualControls">
-      <button id="processTextBtn">Prepare for Reading</button>
       <button id="clearTextBtn">Clear Text</button>
     </div>
     <!-- File Upload Section -->

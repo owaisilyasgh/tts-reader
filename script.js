@@ -17,7 +17,7 @@ const advancedToggle = document.getElementById('advancedToggle');
 const apiKeyInput = document.getElementById('apiKey');
 const minSentenceLengthInput = document.getElementById('minSentenceLength');
 const textContainer = document.getElementById('textContainer');
-const processTextBtn = document.getElementById('processTextBtn');
+// const processTextBtn = document.getElementById('processTextBtn'); // Removed reference
 const clearTextBtn = document.getElementById('clearTextBtn');
 const playBtn = document.getElementById('playBtn');
 const pauseBtn = document.getElementById('pauseBtn');
@@ -31,7 +31,8 @@ const fontSizeInput = document.getElementById('fontSize');
 const settingsModal = document.getElementById('settingsModal');
 const settingsOverlay = document.getElementById('settingsOverlay');
 const closeSettingsBtn = document.getElementById('closeSettingsBtn');
-const darkModeToggle = document.getElementById('darkModeToggle'); // Added dark mode toggle
+const darkModeToggle = document.getElementById('darkModeToggle');
+const highlightThemeSelect = document.getElementById('highlightThemeSelect'); // Added highlight theme select
 let wakeLock = null;
 const wakeLockToggle = document.getElementById('wakeLockToggle');
 
@@ -45,8 +46,11 @@ async function requestWakeLock() {
       console.log('Screen Wake Lock was released');
     });
     console.log('Screen Wake Lock is active');
+    showStatus("Screen Wake Lock is active"); // Update status AFTER acquiring
   } catch (err) {
     console.error(`${err.name}, ${err.message}`);
+    // Ensure wakeLock is null if request failed
+    wakeLock = null;
     showStatus(`Failed to acquire wake lock: ${err.message}`, true);
     wakeLockToggle.checked = false;
   }
@@ -55,8 +59,9 @@ async function requestWakeLock() {
 async function releaseWakeLock() {
   if (wakeLock) {
     await wakeLock.release();
-    wakeLock = null;
+    wakeLock = null; // Set to null BEFORE updating status
     console.log('Screen Wake Lock was released');
+    showStatus("Screen Wake Lock released."); // Update status AFTER releasing
   }
 }
 
@@ -89,11 +94,45 @@ settingsOverlay.addEventListener('click', closeSettingsModal); // Close when cli
  * STATUS BAR & ERROR HANDLING
  *********************************************************/
 function showStatus(msg, isError = false) {
-  statusBar.textContent = (isError ? "Error: " : "Status: ") + msg;
-  statusBar.style.color = isError ? '#dc3545' : '#555'; // Use red for errors
+  const prefix = isError ? "Error: " : "Status: ";
+  const wakeLockIndicator = wakeLock ? "[Screen Awake] " : ""; // Add indicator if wakeLock is active
+  statusBar.textContent = prefix + wakeLockIndicator + msg;
+  // Only set color explicitly for errors; otherwise, let CSS handle it via var(--status-text)
+  statusBar.style.color = isError ? '#dc3545' : '';
   statusBar.style.fontWeight = isError ? 'bold' : 'normal';
-  console.log((isError ? "Error: " : "Status: ") + msg);
+  console.log(prefix + wakeLockIndicator + msg); // Log the full message including indicator
 }
+
+/*********************************************************
+ * HIGHLIGHT THEME HANDLING
+ *********************************************************/
+const highlightThemes = {
+  light: { // Base light mode colors
+    bg: getComputedStyle(document.documentElement).getPropertyValue('--highlight-bg').trim() || '#fff89a',
+    border: getComputedStyle(document.documentElement).getPropertyValue('--highlight-border').trim() || '#ffd347'
+  },
+  dark: {
+    default: { bg: '#495057', border: '#ffc107' }, // Original dark mode
+    grey:    { bg: '#6c757d', border: '#adb5bd' },
+    blue:    { bg: '#3a4a6e', border: '#8ab4f8' },
+    yellow:  { bg: '#fff3cd', border: '#ffeeba' }
+  }
+};
+
+function applyHighlightTheme(themeName = 'default') {
+  const isDark = document.documentElement.classList.contains('dark-mode');
+  let colors;
+
+  if (isDark) {
+    colors = highlightThemes.dark[themeName] || highlightThemes.dark.default;
+  } else {
+    colors = highlightThemes.light; // Always use light mode defaults when not in dark mode
+  }
+
+  document.documentElement.style.setProperty('--current-highlight-bg', colors.bg);
+  document.documentElement.style.setProperty('--current-highlight-border', colors.border);
+}
+
 
 /*********************************************************
  * FONT SIZE HANDLING
@@ -112,79 +151,91 @@ function applyFontSize(size) {
 /*********************************************************
  * LOAD/SAVE SETTINGS
  *********************************************************/
+function loadSetting(key, defaultValue = null) {
+  const storedValue = localStorage.getItem(key);
+  return storedValue === null ? defaultValue : storedValue;
+}
+
+function saveSetting(key, value) {
+  localStorage.setItem(key, value);
+}
+
 function loadSettings() {
   // API Key
-  if (localStorage.getItem('googleTtsApiKey')) {
-    apiKeyInput.value = localStorage.getItem('googleTtsApiKey');
-  }
+  apiKeyInput.value = loadSetting('googleTtsApiKey', '');
   // Min Sentence Length
-  if (localStorage.getItem('minSentenceLength')) {
-    minSentenceLengthInput.value = localStorage.getItem('minSentenceLength');
-  } else {
-    minSentenceLengthInput.value = DEFAULT_MIN_SENTENCE_LENGTH;
-  }
+  minSentenceLengthInput.value = loadSetting('minSentenceLength', DEFAULT_MIN_SENTENCE_LENGTH);
   // Font Size
-  const savedFontSize = localStorage.getItem('fontSize');
-  if (savedFontSize) {
-    fontSizeInput.value = savedFontSize;
-    applyFontSize(savedFontSize); // Apply loaded font size
-  } else {
-    fontSizeInput.value = DEFAULT_FONT_SIZE;
-    applyFontSize(DEFAULT_FONT_SIZE); // Apply default font size
-  }
+  const savedFontSize = loadSetting('fontSize', DEFAULT_FONT_SIZE);
+  fontSizeInput.value = savedFontSize;
+  applyFontSize(savedFontSize); // Apply loaded font size
   // Selected Voice (handled separately)
 
   // Dark Mode
-  const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+  const savedDarkMode = loadSetting('darkMode', 'false') === 'true';
   darkModeToggle.checked = savedDarkMode;
   applyDarkMode(savedDarkMode);
 
   // Wake Lock
-  const savedWakeLock = localStorage.getItem('wakeLock') === 'true';
+  const savedWakeLock = loadSetting('wakeLock', 'false') === 'true';
   wakeLockToggle.checked = savedWakeLock;
   if (savedWakeLock) {
     requestWakeLock();
   }
+
+  // Highlight Theme
+  const savedHighlightTheme = loadSetting('highlightTheme', 'default');
+  highlightThemeSelect.value = savedHighlightTheme;
+  applyHighlightTheme(savedHighlightTheme); // Apply loaded theme
 }
 
 // --- Event Listeners for Saving Settings ---
 apiKeyInput.addEventListener('change', () => {
-  localStorage.setItem('googleTtsApiKey', apiKeyInput.value);
+  saveSetting('googleTtsApiKey', apiKeyInput.value);
   showStatus("API Key updated.");
 });
 
 minSentenceLengthInput.addEventListener('change', () => {
-  localStorage.setItem('minSentenceLength', minSentenceLengthInput.value);
+  saveSetting('minSentenceLength', minSentenceLengthInput.value);
   showStatus("Min Sentence Length updated to " + minSentenceLengthInput.value);
 });
 
 fontSizeInput.addEventListener('change', () => {
   const newSize = fontSizeInput.value;
   applyFontSize(newSize); // Apply the new size (handles clamping)
-  localStorage.setItem('fontSize', fontSizeInput.value); // Save the potentially clamped value
+  saveSetting('fontSize', fontSizeInput.value); // Save the potentially clamped value
   showStatus(`Font size updated to ${fontSizeInput.value}rem.`);
 });
 
 voiceSelect.addEventListener('change', () => {
-  localStorage.setItem("selectedVoice", voiceSelect.value);
+  saveSetting("selectedVoice", voiceSelect.value);
 });
 
 darkModeToggle.addEventListener('change', () => {
   const isDarkMode = darkModeToggle.checked;
   applyDarkMode(isDarkMode);
-  localStorage.setItem('darkMode', isDarkMode);
+  saveSetting('darkMode', isDarkMode);
+  applyHighlightTheme(highlightThemeSelect.value); // Re-apply highlight theme when dark mode changes
   showStatus(`Dark mode ${isDarkMode ? 'enabled' : 'disabled'}.`);
+});
+
+highlightThemeSelect.addEventListener('change', () => {
+  const newTheme = highlightThemeSelect.value;
+  applyHighlightTheme(newTheme);
+  saveSetting('highlightTheme', newTheme);
+  showStatus(`Highlight theme set to ${newTheme}.`);
 });
 
 wakeLockToggle.addEventListener('change', () => {
   const isWakeLockEnabled = wakeLockToggle.checked;
-  localStorage.setItem('wakeLock', isWakeLockEnabled);
+  saveSetting('wakeLock', isWakeLockEnabled);
   if (isWakeLockEnabled) {
     requestWakeLock();
   } else {
     releaseWakeLock();
   }
-  showStatus(`Keep screen on ${isWakeLockEnabled ? 'enabled' : 'disabled'}.`);
+  // Removed status update from here, it's handled within request/release functions now
+  // showStatus(`Keep screen on ${isWakeLockEnabled ? 'enabled' : 'disabled'}.`);
 });
 
 /*********************************************************
@@ -212,28 +263,20 @@ function handleModeChange() {
   playBtn.disabled = true;
   pauseBtn.disabled = true;
   stopBtn.disabled = true;
-  fileInput.value = ""; // Reset file input when mode changes
+  fileInput.value = ""; // Reset file input
   const mode = document.querySelector('input[name="inputMode"]:checked').value;
-  if (mode === "manual") {
-    textContainer.setAttribute("contenteditable", "true");
-    processTextBtn.style.display = "inline-block";
-    clearTextBtn.style.display = "inline-block";
-    document.getElementById('uploadSection').style.display = "none";
-  } else {
-    textContainer.setAttribute("contenteditable", "false");
-    processTextBtn.style.display = "none";
-    clearTextBtn.style.display = "none";
-    document.getElementById('uploadSection').style.display = "flex";
-  }
+  const isManualMode = mode === "manual";
+
+  textContainer.setAttribute("contenteditable", String(isManualMode));
+  // processTextBtn.style.display = isManualMode ? "inline-block" : "none"; // Removed logic for processTextBtn
+  clearTextBtn.style.display = isManualMode ? "inline-block" : "none";
+  document.getElementById('uploadSection').style.display = isManualMode ? "none" : "flex";
 }
 
 /*********************************************************
  * MANUAL MODE
  *********************************************************/
-processTextBtn.addEventListener('click', () => {
-  processText(textContainer.innerText);
-  textContainer.setAttribute("contenteditable", "false"); // Keep non-editable after processing
-});
+// processTextBtn event listener removed
 clearTextBtn.addEventListener('click', () => {
   // Add confirmation if text area is not empty
   if (textContainer.innerText.trim() !== "" && !confirm("Are you sure you want to clear the current text?")) {
@@ -248,6 +291,16 @@ clearTextBtn.addEventListener('click', () => {
   stopBtn.disabled = true;
   textContainer.setAttribute("contenteditable", "true");
   showStatus("Text cleared. Please enter new text.");
+});
+
+// Add listener to enable Play button when text is entered in manual mode
+textContainer.addEventListener('input', () => {
+  const mode = document.querySelector('input[name="inputMode"]:checked').value;
+  if (mode === 'manual') {
+    // Enable play button if there's text, disable if empty.
+    // Playback functions will handle disabling it during playback/pause.
+    playBtn.disabled = textContainer.innerText.trim() === '';
+  }
 });
 
 /*********************************************************
@@ -412,13 +465,16 @@ async function playSentence(index) {
     }
   }
 
-  audioPlayer.play().catch(e => {
+  try {
+    await audioPlayer.play(); // Use await to potentially catch promise rejection
+  } catch (e) {
       showStatus(`Audio playback error: ${e.message}`, true);
       playBtn.disabled = false;
       pauseBtn.disabled = true;
       stopBtn.disabled = true;
       clearHighlight();
-  });
+      return; // Stop further execution for this sentence if play fails
+  }
 
   pauseBtn.disabled = false;
   stopBtn.disabled = false;
@@ -487,7 +543,7 @@ function pausePlayback() {
   }
 }
 
-function startPlayback() {
+async function startPlayback() { // Added async keyword here
   const mode = document.querySelector('input[name="inputMode"]:checked').value;
   // Re-process text only if in manual mode and text might have changed
   if (mode === "manual" && textContainer.getAttribute('contenteditable') === 'true') {
@@ -498,10 +554,18 @@ function startPlayback() {
   if (isPaused) {
     isPaused = false;
     showStatus("Playback resumed.");
-    audioPlayer.play();
-    playBtn.disabled = true;
-    pauseBtn.disabled = false;
-    stopBtn.disabled = false;
+    try {
+        await audioPlayer.play(); // Use await here too
+        playBtn.disabled = true;
+        pauseBtn.disabled = false;
+        stopBtn.disabled = false;
+    } catch (e) {
+        showStatus(`Audio playback error on resume: ${e.message}`, true);
+        playBtn.disabled = false; // Allow user to try playing again
+        pauseBtn.disabled = true;
+        stopBtn.disabled = true;
+        clearHighlight();
+    }
   } else {
     if (globalSentences.length === 0) {
         showStatus("No text processed to play.", true);
@@ -605,31 +669,9 @@ document.addEventListener('DOMContentLoaded', () => {
     handleModeChange(); // Set initial mode display
 });
 
-// Event Listeners
-document.querySelectorAll('input[name="inputMode"]').forEach(radio => { radio.addEventListener('change', handleModeChange); });
-processTextBtn.addEventListener('click', () => {
-  processText(textContainer.innerText);
-  textContainer.setAttribute("contenteditable", "false");
-});
-clearTextBtn.addEventListener('click', () => {
-  if (textContainer.innerText.trim() !== "" && !confirm("Are you sure you want to clear the current text?")) {
-    return;
-  }
-  textContainer.innerHTML = "";
-  globalSentences = [];
-  audioCache = {};
-  currentSentenceIndex = -1;
-  playBtn.disabled = true;
-  pauseBtn.disabled = true;
-  stopBtn.disabled = true;
-  textContainer.setAttribute("contenteditable", "true");
-  showStatus("Text cleared. Please enter new text.");
-});
-// chooseFileBtn listener defined above
-// fileInput listener defined above
-playBtn.addEventListener('click', startPlayback);
-pauseBtn.addEventListener('click', pausePlayback);
-stopBtn.addEventListener('click', stopPlayback);
+// Event Listeners for Refresh Voices (already added earlier, this is just ensuring it's clear)
 document.getElementById('refreshVoicesBtn').addEventListener('click', () => updateVoiceDropdown(true));
-// Settings modal listeners defined above
-// Settings input listeners defined above
+
+// Note: Other event listeners (mode change, process, clear, file, playback, settings)
+// are already added within their respective sections or the loadSettings function.
+// The duplicate block previously here has been removed.

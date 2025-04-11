@@ -18,8 +18,11 @@ html {
   --status-bg: #f9f9f9;
   --status-border: #ddd;
   --status-text: #555;
-  --highlight-bg: #fff89a;
-  --highlight-border: #ffd347;
+  --highlight-bg: #fff89a; /* Default light mode */
+  --highlight-border: #ffd347; /* Default light mode */
+  /* New variables for dynamic highlight */
+  --current-highlight-bg: var(--highlight-bg);
+  --current-highlight-border: var(--highlight-border);
   --modal-bg: #fff;
   --modal-shadow: rgba(0, 0, 0, 0.3);
   --modal-overlay-bg: rgba(0, 0, 0, 0.5);
@@ -47,8 +50,9 @@ html.dark-mode {
   --status-bg: #495057;
   --status-border: #6c757d;
   --status-text: #ced4da;
-  --highlight-bg: #495057; /* Adjust dark mode highlight */
-  --highlight-border: #ffc107;
+  /* Removed specific dark mode highlight vars - will be set dynamically */
+  /* --highlight-bg: #495057; */
+  /* --highlight-border: #ffc107; */
   --modal-bg: #343a40;
   --modal-shadow: rgba(255, 255, 255, 0.15);
   --modal-overlay-bg: rgba(0, 0, 0, 0.7);
@@ -333,7 +337,7 @@ input:checked + .slider:before {
   user-select: text; /* Allow text selection */
   outline: none; /* Remove default outline, maybe add focus style */
   font-size: var(--text-container-font-size, 1rem); /* Use CSS variable, default 1rem */
-  line-height: 1.5; /* Slightly more spacing */
+  line-height: 1.7; /* Increased spacing */
 }
 .sentenceSpan {
   cursor: pointer;
@@ -344,8 +348,9 @@ input:checked + .slider:before {
 }
 /* No specific hover for dark mode needed if using variables */
 .highlight {
-  background-color: var(--highlight-bg) !important;
-  border: 2px solid var(--highlight-border) !important;
+  /* Use the dynamic variables */
+  background-color: var(--current-highlight-bg) !important;
+  border: 2px solid var(--current-highlight-border) !important;
   padding: 2px 4px !important;
   border-radius: 4px;
 }
@@ -410,10 +415,13 @@ input:checked + .slider:before {
   #topBar { flex-direction: row; gap: 4px; padding-top: 4px; padding-bottom: 4px;}
   #voiceSelect, #refreshVoicesBtn { min-height: 44px; font-size: 1rem; }
   #advancedToggle { font-size: 2rem;  }
-  .container {
-    height: auto;
-    min-height: 100vh;
-  }
+  /* Removed conflicting height rule for .container on mobile:
+     .container {
+       height: auto;
+       min-height: 100vh;
+     }
+     The rule outside the media query (.container { height: 100vh; }) should now apply correctly.
+  */
   #modeAndActions { flex-direction: column; gap: 8px; /* Increased gap */ }
   #modeSelector { width: 100%; flex-direction: row; gap: 8px; justify-content: center; }
   #manualControls, #uploadSection { width: 100%; flex-direction: row; gap: 8px; }
@@ -421,7 +429,7 @@ input:checked + .slider:before {
   /* Text container adjustments */
   #textContainer {
     /* Font size is now controlled by the CSS variable */
-    line-height: 1.6; /* Increase line height for touch */
+    line-height: 1.8; /* Increased line height for touch */
     flex: 1 1 auto; /* Ensure it takes available space */
     height: auto; /* Let flexbox determine height */
     margin-bottom: 4px;

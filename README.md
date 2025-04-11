@@ -1,6 +1,6 @@
-# Sentence-by-Sentence TTS Reader
+# Orator
 
-A client-side, responsive web application that reads uploaded text files aloud sentence by sentence using the [Google Cloud Text-to-Speech API](https://cloud.google.com/text-to-speech). The app splits text into sentences (while combining very short ones based on a user-defined minimum length), caches audio for each sentence, and provides a modern, mobile-friendly UI.
+A client-side, responsive web application that reads uploaded text files aloud sentence by sentence using the [Google Cloud Text-to-Speech API](https://cloud.google.com/text-to-speech). The app splits text into sentences (while combining very short ones based on a user-defined minimum length), caches audio for each sentence, and provides a modern, mobile-friendly UI with light and dark themes.
 
 ## Technologies Used
 
@@ -37,13 +37,23 @@ A client-side, responsive web application that reads uploaded text files aloud s
     Audio for each sentence is cached to minimize API calls and reduce delays. The next sentence is pre-fetched in the background.
 
 *   **Keep Screen On:**
-    Prevents the screen from turning off while the app is in use. (Requires HTTPS and user permission)
+    Prevents the screen from turning off while the app is in use (Requires HTTPS and user permission). Includes a status bar indicator `[Screen Awake]` when active.
+*   **Dark Mode:**
+    Supports a dark theme for comfortable viewing in low light, toggleable in settings.
+*   **Configurable Font Size:**
+    Adjust the text area font size via the Advanced Settings panel.
+*   **Configurable Dark Mode Highlight:**
+    Choose from several highlight color themes for dark mode in the Advanced Settings panel.
+*   **Improved Manual Mode:**
+    The Play button is now enabled automatically as soon as text is entered.
+*   **Code Refinements:**
+    Includes general code cleanup (e.g., removed duplicate listeners) and improved error handling for audio playback.
 
 ## Configuration
 
 1.  Obtain a Google Cloud TTS API key from the [Google Cloud Console](https://console.cloud.google.com/).
 2.  Enter the API key in the Advanced Settings panel.
-3.  Adjust the minimum sentence length in the Advanced Settings panel if desired.
+3.  Adjust the minimum sentence length, font size, and dark mode highlight theme in the Advanced Settings panel if desired.
 
 ## Getting Started
 
