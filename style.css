@@ -82,11 +82,11 @@ body {
   /* Use CSS variable for height, fallback to 100vh */
   height: var(--app-height, 100vh);
   margin: 0 auto;
-  padding: 16px;
+  padding: 16px; /* Base padding */
   background: var(--container-bg);
   border-radius: 8px;
   box-shadow: 0 2px 8px var(--container-shadow);
-  /* overflow: hidden; */ /* Removed to allow container scroll if needed, though textContainer should handle most scrolling */
+  overflow: hidden; /* Restore: Prevent container scroll, force internal scroll */
   transition: background-color 0.3s ease;
 }
 h1 {
@@ -379,7 +379,7 @@ input:checked + .slider:before {
   border-top: 1px solid var(--border-color); /* Use variable */
   display: flex;
   gap: 8px;
-  flex-shrink: 0; /* Prevent controls from shrinking */
+  /* Removed flex-shrink: 0; */
 }
 #controls button {
   padding: 0.4rem 0.8rem;
@@ -404,9 +404,10 @@ input:checked + .slider:before {
   /* MOBILE ADJUSTMENTS */
 @media (max-width: 600px) {
   .container {
-    padding: 8px;
+    padding: 8px; /* Reset padding for mobile */
+    padding-bottom: 60px; /* Add padding to prevent overlap with fixed controls (approx height) */
     border-radius: 0;
-    height: 100vh; /* Enforce viewport height on mobile too */
+    /* height: 100vh; */ /* Height is handled by --app-height now */
     /* Flex properties already set */
   }
   h1 { font-size: 1.2rem; margin-bottom: 4px; }
@@ -436,7 +437,24 @@ input:checked + .slider:before {
    .sentenceSpan {
      padding: 4px 0; /* More vertical padding on mobile */
    }
-  #controls { font-size: 1rem; padding: 8px; gap: 8px; }
+  #controls {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    /* Re-apply background and border-top for fixed element */
+    background: var(--container-bg);
+    border-top: 1px solid var(--border-color);
+    /* Ensure padding is applied */
+    padding: 8px;
+    /* Limit width and center if needed */
+    max-width: 600px; /* Optional: constrain width */
+    margin: 0 auto; /* Center if max-width is applied */
+    /* Keep flex properties */
+    font-size: 1rem;
+    gap: 8px;
+    z-index: 10; /* Ensure it's above other content */
+   }
   #controls button { min-height: 44px; font-size: 1rem; }
   /* Status Bar: Keep in flow, above controls */
   #statusBar {
