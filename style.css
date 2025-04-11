@@ -407,9 +407,13 @@ input:checked + .slider:before {
     /* Flex properties already set */
   }
   h1 { font-size: 1.2rem; margin-bottom: 4px; }
-  #topBar { flex-direction: row; gap: 4px; }
+  #topBar { flex-direction: row; gap: 4px; padding-top: 4px; padding-bottom: 4px;}
   #voiceSelect, #refreshVoicesBtn { min-height: 44px; font-size: 1rem; }
-  #advancedToggle { font-size: 2rem; }
+  #advancedToggle { font-size: 2rem;  }
+  .container {
+    height: auto;
+    min-height: 100vh;
+  }
   #modeAndActions { flex-direction: column; gap: 8px; /* Increased gap */ }
   #modeSelector { width: 100%; flex-direction: row; gap: 8px; justify-content: center; }
   #manualControls, #uploadSection { width: 100%; flex-direction: row; gap: 8px; }
