@@ -15,85 +15,85 @@
 </head>
 <body>
 <div class="container">
-  <div id="mainContent"> <!-- START New Wrapper -->
+    <!-- Fixed Top Elements -->
     <h1>Orator</h1>
-
-    <!-- Top Bar: Voice Select, Refresh, Gear Icon -->
-    <div id="topBar">
-    <div style="display: flex; align-items: center;">
-      <select id="voiceSelect"></select>
-      <button id="refreshVoicesBtn">Refresh Voices</button>
-    </div>
-    <button id="advancedToggle" title="Advanced Settings" aria-label="Open Advanced Settings">&#9881;</button> <!-- Keep this button to trigger the modal -->
-  </div>
-
-  <!-- Settings Modal -->
-  <div id="settingsOverlay" class="modal-overlay"></div> <!-- Overlay for background dimming -->
-  <div id="settingsModal" class="modal">
-    <button id="closeSettingsBtn" class="modal-close-btn">&times;</button>
-    <h2>Advanced Settings</h2>
-    <div class="modal-content">
-      <label for="apiKey">Google TTS API Key:</label>
-      <input type="text" id="apiKey" placeholder="Enter your API Key">
-      <label for="minSentenceLength">Min Sentence Length:</label>
-      <input type="number" id="minSentenceLength" value="150" min="0">
-      <label for="fontSize">Font Size (rem):</label>
-      <input type="number" id="fontSize" value="1" min="0.5" max="3" step="0.1">
-      <div class="setting-row">
-        <label for="darkModeToggle">Dark Mode:</label>
-        <label class="switch">
-          <input type="checkbox" id="darkModeToggle">
-          <span class="slider round"></span>
-        </label>
+    <!-- Voice Selection Modal -->
+    <div id="voiceOverlay" class="modal-overlay"></div>
+    <div id="voiceModal" class="modal">
+      <button id="closeVoiceBtn" class="modal-close-btn">&times;</button>
+      <h2>Select Voice</h2>
+      <div class="modal-content">
+        <select id="voiceSelect"></select>
+        <button id="refreshVoicesBtn">Refresh Voices</button>
       </div>
-      <div class="setting-row">
-        <label for="wakeLockToggle">Keep Screen On:</label>
-        <label class="switch">
-          <input type="checkbox" id="wakeLockToggle">
-          <span class="slider round"></span>
-        </label>
-      </div>
-      <label for="highlightThemeSelect">Dark Mode Highlight:</label>
-      <select id="highlightThemeSelect">
-        <option value="default">Default (Yellow Border)</option>
-        <option value="grey">Grey</option>
-        <option value="blue">Blue</option>
-        <option value="yellow">Yellow</option>
-      </select>
     </div>
-  </div>
 
-  <!-- Mode & Actions Row -->
-  <div id="modeAndActions">
-    <!-- Mode Selector -->
-    <div id="modeSelector">
-      <label><input type="radio" name="inputMode" value="manual" checked> Manual Entry</label>
+    <!-- Settings Modal (Keep near trigger) -->
+    <div id="settingsOverlay" class="modal-overlay"></div> <!-- Overlay for background dimming -->
+    <div id="settingsModal" class="modal">
+      <button id="closeSettingsBtn" class="modal-close-btn">&times;</button>
+      <h2>Advanced Settings</h2>
+      <div class="modal-content">
+        <label for="apiKey">Google TTS API Key:</label>
+        <input type="text" id="apiKey" placeholder="Enter your API Key">
+        <label for="minSentenceLength">Min Sentence Length:</label>
+        <input type="number" id="minSentenceLength" value="150" min="0">
+        <label for="fontSize">Font Size (rem):</label>
+        <input type="number" id="fontSize" value="1" min="0.5" max="3" step="0.1">
+        <div class="setting-row">
+          <label for="darkModeToggle">Dark Mode:</label>
+          <label class="switch">
+            <input type="checkbox" id="darkModeToggle">
+            <span class="slider round"></span>
+          </label>
+        </div>
+        <div class="setting-row">
+          <label for="wakeLockToggle">Keep Screen On:</label>
+          <label class="switch">
+            <input type="checkbox" id="wakeLockToggle">
+            <span class="slider round"></span>
+          </label>
+        </div>
+        <label for="highlightThemeSelect">Dark Mode Highlight:</label>
+        <select id="highlightThemeSelect">
+          <option value="default">Default (Yellow Border)</option>
+          <option value="grey">Grey</option>
+          <option value="blue">Blue</option>
+          <option value="yellow">Yellow</option>
+        </select>
+      </div>
+    </div>
+    <div id="modeAndActions">
+      <!-- Mode Selector -->
+      <div id="modeSelector">
+        <label><input type="radio" name="inputMode" value="manual" checked> Manual Entry</label>
       <label><input type="radio" name="inputMode" value="upload"> File Upload</label>
     </div>
-    <!-- Manual Controls -->
-    <div id="manualControls">
-      <button id="clearTextBtn">Clear Text</button>
-    </div>
-    <!-- File Upload Section -->
-    <div id="uploadSection">
-      <input type="file" id="fileInput" accept=".txt">
-      <button id="chooseFileBtn">Choose File</button>
+    <!-- Action Buttons (Combined) -->
+    <button id="clearTextBtn" style="display: none;">Clear Text</button> <!-- Initially hidden -->
+    <input type="file" id="fileInput" accept=".txt" style="display: none;"> <!-- Keep hidden file input -->
+    <button id="chooseFileBtn" style="display: none;">Choose File</button> <!-- Initially hidden -->
+    <!-- Modal Triggers -->
+    <div class="modal-triggers"> <!-- Add wrapper for spacing -->
+        <button id="openVoiceModalBtn" title="Select Voice" aria-label="Select Voice">🔊</button>
+        <button id="advancedToggle" title="Advanced Settings" aria-label="Open Advanced Settings">&#9881;</button>
     </div>
   </div>
+    <!-- End Fixed Top Elements -->
 
-  <!-- Text Container -->
-  <div id="textContainer" contenteditable="true"></div>
+    <!-- Scrollable Text Area Wrapper -->
+    <div id="scrollableTextWrapper">
+      <div id="textContainer" contenteditable="true"></div>
+    </div>
+    <!-- End Scrollable Text Area Wrapper -->
 
-  <!-- Status Bar (will be fixed on mobile) -->
-  <div id="statusBar" aria-live="polite">Status: Ready</div>
-  </div> <!-- END New Wrapper (#mainContent) -->
-
-  <!-- Playback Controls (Now outside mainContent) -->
-  <div id="controls">
-    <button id="playBtn" disabled>Play</button>
-    <button id="pauseBtn" disabled>Pause</button>
-    <button id="stopBtn" disabled>Stop</button>
-  </div>
+    <!-- Fixed Bottom Elements -->
+    <div id="statusBar" aria-live="polite">Status: Ready</div>
+    <div id="controls">
+      <button id="playBtn" disabled>Play</button>
+      <button id="pauseBtn" disabled>Pause</button>
+      <button id="stopBtn" disabled>Stop</button>
+    </div>
 
   <!-- Hidden Audio Player -->
   <audio id="audioPlayer"></audio>

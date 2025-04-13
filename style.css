@@ -31,6 +31,7 @@ html {
   --button-text-color: #fff;
   --disabled-bg: #ccc;
   --disabled-text: #666; /* Optional: Change text color too */
+  --content-padding: 16px; /* Standard padding */
 }
 
 html.dark-mode {
@@ -82,41 +83,35 @@ body {
   /* Use CSS variable for height, fallback to 100vh */
   height: var(--app-height, 100vh);
   margin: 0 auto;
-  padding: 16px; /* Base padding */
+  /* Padding removed - applied to children */
   background: var(--container-bg);
   border-radius: 8px;
   box-shadow: 0 2px 8px var(--container-shadow);
-  overflow: hidden; /* Restore: Prevent container scroll, force internal scroll */
+  overflow: hidden; /* Prevent container scroll */
   transition: background-color 0.3s ease;
 }
 
-/* New rule for the main content wrapper */
-#mainContent {
-  flex: 1 1 auto; /* Allow it to grow and shrink */
-  overflow-y: auto; /* Make this the scrolling container */
-  /* Add padding that was previously on .container */
-  padding: 16px;
-  /* Ensure flex context for children if needed, though block layout might be fine */
-  display: block; /* Or flex if needed later */
+/* Scrollable Text Wrapper */
+#scrollableTextWrapper {
+  flex: 1 1 auto; /* Take up available space */
+  overflow-y: auto; /* Enable vertical scrolling */
+  /* Remove padding, handled by textContainer inside */
 }
 
 h1 {
+  flex-shrink: 0; /* Prevent shrinking */
+  padding: 0 var(--content-padding); /* Use variable */
   margin-bottom: 8px;
   font-size: 1.5rem;
   text-align: center;
   font-weight: 600;
   color: var(--text-color);
 }
-/* TOP BAR */
-#topBar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-  flex-wrap: nowrap; /* keep one row */
-}
-#voiceSelect {
-  padding: 0.4rem;
+/* TOP BAR - Removed */
+
+/* Style for the new voice modal trigger button */
+#openVoiceModalBtn {
+  background: none;
   border: 1px solid var(--input-border);
   background-color: var(--input-bg);
   color: var(--text-color);
@@ -156,28 +151,112 @@ h1 {
 }
 #advancedToggle:hover { opacity: 1; }
 
-/* MODE SELECTOR & ACTION BUTTONS */
+/* Style for the new voice modal trigger button */
+#openVoiceModalBtn {
+  background: none;
+  border: none;
+  font-size: 1.8rem; /* Match settings icon size */
+  cursor: pointer;
+  color: var(--text-color);
+  opacity: 0.7;
+  padding: 0.4rem 0.8rem; /* Match other button padding */
+  min-height: 40px; /* Match settings icon height */
+  transition: opacity 0.2s ease;
+}
+#openVoiceModalBtn:hover { opacity: 1; }
+
+/* Style for the settings trigger button (now potentially inside modal-triggers) */
+#advancedToggle {
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  cursor: pointer;
+  color: var(--text-color);
+  opacity: 0.7;
+  padding: 0.4rem 0.8rem; /* Match other button padding */
+  min-height: 40px;
+  transition: opacity 0.2s ease;
+}
+#advancedToggle:hover { opacity: 1; }
+
+
+/* MODE SELECTOR & ACTION BUTTONS (Now includes modal triggers) */
 #modeAndActions {
+  flex-shrink: 0; /* Prevent shrinking */
+  padding: 8px var(--content-padding); /* Use variable */
+  margin-left: 0; /* Remove margin */
+  margin-right: 0; /* Remove margin */
   display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
+  flex-wrap: nowrap; /* Prevent wrapping */
+  justify-content: space-between; /* Space out mode/actions and triggers */
   align-items: center;
   margin-bottom: 8px;
-  gap: 8px;
+  gap: 8px; /* Gap between items if they wrap */
   /* Add some visual separation */
   border: 1px solid var(--border-color); /* Use variable */
-  padding: 8px;
+  /* padding: 8px; */ /* Padding applied above */
   border-radius: 4px;
-  margin-bottom: 8px;
+  /* margin-bottom: 8px; */ /* Already has margin-bottom */
 }
-#modeSelector { display: flex; gap: 8px; align-items: center; }
-#modeSelector label { font-size: 1rem; cursor: pointer; }
-#manualControls, #uploadSection {
-  display: flex;
-  gap: 8px;
+#modeSelector {
+  display: inline-flex; /* Use inline-flex for button group */
+  /* gap: 8px; */ /* Remove gap, borders will handle separation */
+  align-items: center;
+  /* flex-shrink: 0; */ /* Allow selector group to shrink */
+  border: 1px solid var(--input-border); /* Add border around the group */
+  border-radius: 4px; /* Rounded corners for the group */
+  overflow: hidden; /* Clip corners */
+}
+#modeSelector input[type="radio"] {
+  /* Visually hide the radio button but keep it accessible */
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+}
+#modeSelector label {
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.4rem 0.8rem; /* Match button padding */
+  border: none; /* Remove default label border */
+  /* border-right: 1px solid var(--input-border); */ /* Add separator */
+  background-color: var(--input-bg); /* Default background */
+  color: var(--text-color);
+  transition: background-color 0.2s ease, color 0.2s ease;
+  min-height: 40px; /* Match button height */
+  display: flex; /* Align text vertically */
   align-items: center;
 }
-#processTextBtn, #clearTextBtn, #chooseFileBtn {
+/* #modeSelector label:last-of-type {
+  border-right: none; /* Remove border from last label */
+/* } */
+#modeSelector input[type="radio"]:checked + label {
+  background-color: var(--primary-color); /* Active background */
+  color: var(--button-text-color); /* Active text color */
+}
+#modeSelector input[type="radio"]:focus + label {
+   /* Optional: Add focus style */
+   box-shadow: 0 0 0 2px var(--primary-hover);
+   z-index: 1; /* Bring focus style above adjacent borders */
+}
+#modeSelector label:hover {
+  background-color: var(--input-border); /* Subtle hover */
+}
+#modeSelector input[type="radio"]:checked + label:hover {
+  background-color: var(--primary-hover); /* Hover for active */
+}
+
+
+/* Wrapper for modal trigger icons */
+.modal-triggers {
+    display: flex;
+    align-items: center;
+    gap: 4px; /* Space between icons */
+}
+
+/* Style action buttons directly within #modeAndActions */
+#modeAndActions > button { /* Target direct button children */
   padding: 0.4rem 0.8rem;
   background-color: var(--secondary-color); /* Use variable */
   border: none;
@@ -196,7 +275,7 @@ h1 {
 }
 #fileInput { display: none; }
 
-/* MODAL STYLES */
+/* MODAL STYLES (Apply to both Settings and Voice modals) */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -333,13 +412,27 @@ input:checked + .slider:before {
   border-radius: 50%;
 }
 
+/* Specific styles for Voice Modal content if needed */
+#voiceModal .modal-content {
+  align-items: center; /* Center dropdown and button */
+}
+#voiceModal #voiceSelect {
+  width: 100%; /* Make dropdown full width */
+  margin-bottom: 10px; /* Space before refresh button */
+}
+#voiceModal #refreshVoicesBtn {
+  width: auto; /* Allow button to size naturally */
+  padding: 0.4rem 1.2rem; /* Adjust padding */
+}
 
-/* TEXT CONTAINER */
+
+/* Removed .paragraph style */
+
+/* TEXT CONTAINER (inside scrollable wrapper) */
 #textContainer {
-  /* Removed flex: 1 1 auto; */
-  /* Removed overflow-y: auto; - Scrolling handled by #mainContent */
+  /* No flex or overflow needed here */
   border: 1px solid var(--border-color);
-  padding: 10px;
+  padding: 10px var(--content-padding); /* Use variable for horizontal padding */
   border-radius: 4px;
   background-color: var(--input-bg); /* Use input bg for consistency */
   margin-bottom: 8px;
@@ -365,29 +458,29 @@ input:checked + .slider:before {
   border-radius: 4px;
 }
 
-/* STATUS BAR: Placed above playback controls */
+/* STATUS BAR: Placed below scrollable area */
 #statusBar {
-  border: 1px solid var(--status-border); /* Use variable */
-  padding: 8px;
-  background-color: var(--status-bg); /* Use variable */
+  flex-shrink: 0; /* Ensure it doesn't shrink */
+  border: 1px solid var(--status-border);
+  padding: 8px var(--content-padding); /* Use variable */
+  background-color: var(--status-bg);
   border-radius: 4px;
   text-align: center;
-  font-size: 0.9rem; /* Slightly smaller */
-  color: var(--status-text); /* Use variable */
-  flex: 0 0 auto; /* Don't grow or shrink */
-  margin-bottom: 8px; /* Space before controls */
+  font-size: 0.9rem;
+  color: var(--status-text);
+  margin-bottom: 8px;
   /* Accessibility */
   /* aria-live="polite" is set in HTML */
 }
 
 /* PLAYBACK CONTROLS (at bottom) */
 #controls {
-  background: var(--container-bg); /* Match container bg */
-  padding: 8px; /* Keep padding for internal spacing */
-  border-top: 1px solid var(--border-color); /* Use variable */
+  flex-shrink: 0; /* Ensure it doesn't shrink */
+  background: var(--container-bg);
+  padding: 8px var(--content-padding); /* Use variable */
+  border-top: 1px solid var(--border-color);
   display: flex;
   gap: 8px;
-  flex-shrink: 0; /* Ensure controls don't shrink */
 }
 #controls button {
   padding: 0.4rem 0.8rem;
@@ -411,13 +504,16 @@ input:checked + .slider:before {
 
   /* MOBILE ADJUSTMENTS */
 @media (max-width: 600px) {
-  /* Adjust padding on the new main content area for mobile */
-  #mainContent {
-    padding: 8px;
+  html {
+    --content-padding: 8px; /* Mobile padding */
   }
+  /* Padding is handled by the variable now, no need for specific overrides here */
+  /* #scrollableTextWrapper { ... } */
+  /* h1, #statusBar, #controls { ... } */
+  /* #modeAndActions { ... } */
+
   .container {
-    /* padding: 8px; */ /* Padding now handled by #mainContent */
-    /* padding-bottom: 60px; */ /* Removed bottom padding, no longer needed */
+    /* Padding handled by children */
     border-radius: 0;
     /* height is handled by --app-height */
     /* Flex properties already set */
@@ -433,18 +529,28 @@ input:checked + .slider:before {
      }
      The rule outside the media query (.container { height: 100vh; }) should now apply correctly.
   */
-  #modeAndActions { flex-direction: column; gap: 8px; /* Increased gap */ }
-  #modeSelector { width: 100%; flex-direction: row; gap: 8px; justify-content: center; }
-  #manualControls, #uploadSection { width: 100%; flex-direction: row; gap: 8px; }
-  #processTextBtn, #clearTextBtn, #chooseFileBtn { width: 100%; min-height: 44px; font-size: 1rem; }
+  #modeAndActions {
+    /* flex-direction: column; */ /* Keep as row, allow wrap */
+    gap: 8px;
+  }
+  #modeSelector {
+     width: auto; /* Allow natural width */
+     /* justify-content: center; */ /* Align start */
+     margin-bottom: 4px; /* Add space if it wraps */
+   }
+  /* Removed #manualControls, #uploadSection rules */
+  #modeAndActions > button { /* Target direct button children */
+     width: auto; /* Allow natural width */
+     min-height: 44px;
+     font-size: 1rem;
+   }
   /* Text container adjustments */
   #textContainer {
     /* Font size is now controlled by the CSS variable */
     line-height: 1.8; /* Increased line height for touch */
-    flex: 1 1 auto; /* Ensure it takes available space */
-    height: auto; /* Let flexbox determine height */
+    /* Removed flex/height rules */
     margin-bottom: 4px;
-    /* Padding is handled by the main rule now */
+    /* Padding is handled by the main rule */
   }
    .sentenceSpan {
      padding: 4px 0; /* More vertical padding on mobile */
@@ -460,11 +566,11 @@ input:checked + .slider:before {
     /* z-index: 10; */
     /* Keep other mobile styles */
     font-size: 1rem;
-    padding: 8px; /* Ensure padding is still applied */
+    /* padding: 8px; */ /* Padding adjusted above */
     gap: 8px;
    }
   #controls button { min-height: 44px; font-size: 1rem; }
-  /* Status Bar: Keep in flow, above controls */
+  /* Status Bar: Keep in flow, above controls (inside #mainContent) */
   #statusBar {
     position: static; /* Remove fixed positioning */
     margin: 0 0 8px 0; /* Adjust margin */

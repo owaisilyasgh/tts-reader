@@ -31,8 +31,12 @@ const fontSizeInput = document.getElementById('fontSize');
 const settingsModal = document.getElementById('settingsModal');
 const settingsOverlay = document.getElementById('settingsOverlay');
 const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+const voiceModal = document.getElementById('voiceModal'); // New voice modal
+const voiceOverlay = document.getElementById('voiceOverlay'); // New voice overlay
+const openVoiceModalBtn = document.getElementById('openVoiceModalBtn'); // New voice modal trigger
+const closeVoiceBtn = document.getElementById('closeVoiceBtn'); // New voice modal close button
 const darkModeToggle = document.getElementById('darkModeToggle');
-const highlightThemeSelect = document.getElementById('highlightThemeSelect'); // Added highlight theme select
+const highlightThemeSelect = document.getElementById('highlightThemeSelect');
 let wakeLock = null;
 const wakeLockToggle = document.getElementById('wakeLockToggle');
 
@@ -88,7 +92,25 @@ function closeSettingsModal() {
 
 advancedToggle.addEventListener('click', openSettingsModal);
 closeSettingsBtn.addEventListener('click', closeSettingsModal);
-settingsOverlay.addEventListener('click', closeSettingsModal); // Close when clicking overlay
+settingsOverlay.addEventListener('click', closeSettingsModal); // Close settings modal when clicking overlay
+
+/*********************************************************
+ * VOICE MODAL HANDLING
+ *********************************************************/
+function openVoiceModal() {
+  voiceOverlay.classList.add('visible');
+  voiceModal.classList.add('visible');
+}
+
+function closeVoiceModal() {
+  voiceOverlay.classList.remove('visible');
+  voiceModal.classList.remove('visible');
+}
+
+openVoiceModalBtn.addEventListener('click', openVoiceModal);
+closeVoiceBtn.addEventListener('click', closeVoiceModal);
+voiceOverlay.addEventListener('click', closeVoiceModal); // Close voice modal when clicking overlay
+
 
 /*********************************************************
  * STATUS BAR & ERROR HANDLING
@@ -268,9 +290,15 @@ function handleModeChange() {
   const isManualMode = mode === "manual";
 
   textContainer.setAttribute("contenteditable", String(isManualMode));
-  // processTextBtn.style.display = isManualMode ? "inline-block" : "none"; // Removed logic for processTextBtn
+
+  // Show/hide the correct action button based on mode
   clearTextBtn.style.display = isManualMode ? "inline-block" : "none";
-  document.getElementById('uploadSection').style.display = isManualMode ? "none" : "flex";
+  chooseFileBtn.style.display = isManualMode ? "none" : "inline-block";
+
+  // Hide the file input itself (it's triggered by the button)
+  fileInput.style.display = "none";
+  // Hide the upload section div if it still exists conceptually, though elements are now direct children
+  // document.getElementById('uploadSection').style.display = isManualMode ? "none" : "flex"; // Keep this commented or remove if #uploadSection div is gone
 }
 
 /*********************************************************
@@ -317,8 +345,8 @@ fileInput.addEventListener('change', e => {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = evt => {
-    textContainer.innerText = evt.target.result;
-    processText(evt.target.result);
+    // Remove this line: textContainer.innerText = evt.target.result;
+    processText(evt.target.result); // Process directly to build structure
     // Ensure non-editable in upload mode
     textContainer.setAttribute("contenteditable", "false");
     // DO NOT reset fileInput.value here - it's reset before the click now.
@@ -347,38 +375,46 @@ function combineSentences(sentences) {
 }
 
 function processText(text) {
-  const paragraphs = text.split(/\r?\n\s*\r?\n/);
-  globalSentences = [];
-  textContainer.innerHTML = "";
-  const sentenceSplitRegex = /(?<!\b(?:Dr\.|Mr\.|Mrs\.|Ms\.|Prof\.|Sr\.|Jr\.|b\.))(?<=[.?!])\s+(?=[A-Z])/g;
-  paragraphs.forEach((para, pIndex) => {
-    const pDiv = document.createElement('div');
-    pDiv.classList.add('paragraph');
-    if (para.trim() === "") { pDiv.innerHTML = "<br>"; }
-    else {
-      let raw = para.split(sentenceSplitRegex);
-      let finalSentences = combineSentences(raw);
-      finalSentences.forEach(sentence => {
-        const span = document.createElement('span');
-        const globalIndex = globalSentences.length;
-        span.id = "sentence_" + globalIndex;
-        span.classList.add("sentenceSpan");
-        span.textContent = sentence;
-        span.addEventListener('click', () => {
-          currentSentenceIndex = globalIndex;
-          stopPlayback();
-          clearHighlight();
-          highlightSentence(globalIndex);
-          showStatus(`Sentence ${globalIndex + 1} selected. Press Play to start.`);
-        });
-        pDiv.appendChild(span);
-        pDiv.appendChild(document.createTextNode(" "));
-        globalSentences.push({ paragraphIndex: pIndex, sentenceText: sentence });
+  // Split by any newline character(s)
+  const lines = text.split(/\r?\n/);
+  globalSentences = []; // Reset global state (now represents lines)
+  textContainer.innerHTML = ""; // Clear previous content
+
+  lines.forEach((lineText, lineIndex) => {
+    const trimmedLine = lineText.trim();
+    // Create a container for the line (e.g., a div or span)
+    // Using a div allows block-level spacing if needed via CSS later
+    const lineDiv = document.createElement('div');
+    lineDiv.classList.add('textLine'); // Add a class for potential styling
+
+    if (trimmedLine === "") {
+      // Represent blank lines with a non-breaking space inside the div
+      // to ensure the div takes up space and respects line-height/margins.
+      lineDiv.innerHTML = '&nbsp;';
+    } else {
+      // Treat the entire line as one "sentence" for playback
+      const span = document.createElement('span');
+      const globalIndex = globalSentences.length; // Index in our new line-based array
+      span.id = "line_" + globalIndex; // Use line_ prefix for clarity
+      span.classList.add("sentenceSpan"); // Keep class for highlighting/styling
+      span.textContent = lineText; // Use original lineText to preserve leading/trailing spaces if desired within the line
+      span.addEventListener('click', () => {
+        currentSentenceIndex = globalIndex; // Index is now line index
+        stopPlayback();
+        clearHighlight();
+        highlightSentence(globalIndex); // Highlight function needs to use new ID prefix
+        showStatus(`Line ${globalIndex + 1} selected. Press Play to start.`);
       });
+      lineDiv.appendChild(span);
+      // Store the line text for TTS
+      globalSentences.push({ lineIndex: globalIndex, sentenceText: lineText }); // Store original line text
     }
-    textContainer.appendChild(pDiv);
+    textContainer.appendChild(lineDiv);
   });
-  showStatus(`Processed text: ${globalSentences.length} sentences.`);
+
+  // Update status based on number of non-empty lines processed
+  const playableLines = globalSentences.length;
+  showStatus(`Processed text: ${playableLines} lines.`);
   playBtn.disabled = (globalSentences.length === 0);
   pauseBtn.disabled = true;
   stopBtn.disabled = true;
@@ -508,10 +544,12 @@ async function playSentence(index) {
   }
 }
 
-function highlightSentence(index) {
+function highlightSentence(index) { // Index now refers to line index
   clearHighlight();
-  const span = document.getElementById("sentence_" + index);
+  // Use the new ID prefix "line_"
+  const span = document.getElementById("line_" + index);
   if (span) {
+    // Highlight the span itself, scrolling its parent div into view
     span.classList.add("highlight");
     span.parentElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
